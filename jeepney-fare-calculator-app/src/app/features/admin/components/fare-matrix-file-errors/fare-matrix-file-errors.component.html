@@ -1,0 +1,13 @@
+<div class="file-errors" role="alert">
+  <p class="summary">{{ summary() }}</p>
+  <ul>
+    @for (error of errors(); track $index) {
+      <li>
+        @if (location(error); as where) {
+          <span class="where">{{ where }}:</span>
+        }
+        {{ error.message }}
+      </li>
+    }
+  </ul>
+</div>

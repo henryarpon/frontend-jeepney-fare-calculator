@@ -1,9 +1,10 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../../../environments/environment';
 import {
+  FareMatrixFileError,
   FareMatrixPreview,
   FareMatrixVersionSummary,
   VehicleType,
@@ -33,6 +34,18 @@ export class FareMatrixService {
   listVersions(vehicleType: VehicleType): Observable<FareMatrixVersionSummary[]> {
     return this.http.get<FareMatrixVersionSummary[]>(this.baseUrl, { params: { vehicleType } });
   }
+}
+
+/**
+ * The file's errors when a preview or upload was rejected because the file is invalid
+ * (400 with `rowErrors`), or `null` for any other failure.
+ */
+export function fareMatrixFileErrors(error: unknown): FareMatrixFileError[] | null {
+  if (!(error instanceof HttpErrorResponse) || error.status !== 400) {
+    return null;
+  }
+  const body = error.error as { rowErrors?: unknown } | null;
+  return Array.isArray(body?.rowErrors) ? (body.rowErrors as FareMatrixFileError[]) : null;
 }
 
 function uploadForm(vehicleType: VehicleType, file: File): FormData {

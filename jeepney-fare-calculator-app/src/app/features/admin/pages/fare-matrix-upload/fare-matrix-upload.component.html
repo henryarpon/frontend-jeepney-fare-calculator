@@ -38,7 +38,9 @@
 }
 
 <section class="preview" aria-live="polite">
-  @if (preview(); as preview) {
+  @if (fileErrors(); as fileErrors) {
+    <app-fare-matrix-file-errors [errors]="fileErrors" />
+  } @else if (preview(); as preview) {
     <app-fare-matrix-rows-table [rows]="preview.rows" [caption]="previewCaption()" />
     <p>Check the rows. Confirming makes this the Active Fare Matrix right away.</p>
   }
