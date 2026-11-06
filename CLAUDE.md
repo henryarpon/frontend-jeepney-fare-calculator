@@ -1,7 +1,7 @@
 # Frontend (Angular)
 
 Angular (latest stable), TypeScript strict mode, standalone components.
-Classic file layout: every component has its own `.ts`, `.html`, and `.css` file.
+Classic file layout: every component has its own `.ts`, `.html`, and `.scss` file.
 The owner reads this code personally, so keep it easy to follow.
 
 ## Commands
@@ -15,10 +15,10 @@ Run from `frontend/`.
 - Generate service: `ng generate service core/services/<name> --type=service`
 
 ## Component file format (IMPORTANT)
-- Every component = three separate files: `<name>.component.ts`, `<name>.component.html`, `<name>.component.css`.
+- Every component = three separate files: `<name>.component.ts`, `<name>.component.html`, `<name>.component.scss`.
 - NEVER use inline `template:` or `styles:`. Always `templateUrl` and `styleUrl`.
 - Keep the `.component.ts` / `.service.ts` suffixes in file names (use `--type=component` / `--type=service` when generating).
-- Keep logic in the `.ts` file, markup in `.html`, styling in `.css`. No logic-heavy expressions in templates; compute in the class.
+- Keep logic in the `.ts` file, markup in `.html`, styling in `.scss`. No logic-heavy expressions in templates; compute in the class.
 
 ## Architecture
 Feature-based folders:
@@ -53,7 +53,7 @@ src/app/
 - Forms: reactive forms with typed `FormGroup`s.
 - Avoid manual `subscribe()` in components. Prefer the `async` pipe, `toSignal`, or `takeUntilDestroyed`.
 - Naming: `kebab-case` files, `PascalCase` classes, `camelCase` members, `Component`/`Service` suffixes, selectors prefixed `app-`.
-- CSS: component-scoped styles in the component's `.css`. Global styles and design tokens (colors, spacing) go in `src/styles.css`.
+- Styles: SCSS. Component-scoped styles in the component's `.scss`. Global styles and design tokens (colors, spacing) go in `src/styles.scss`.
 - API base URL comes from environment config, never hardcoded.
 
 ## Gotchas

@@ -1,0 +1,8 @@
+<header class="admin-header">
+  <p class="app-name">Jeepney Fare Calculator · Administrator</p>
+  <button type="button" (click)="signOut()" [disabled]="signingOut()">Sign out</button>
+</header>
+
+<main class="admin-main">
+  <router-outlet />
+</main>

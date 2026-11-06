@@ -1,0 +1,30 @@
+// The admin screens have no design brief yet (see PRODUCT.md), so this stays plain and accessible.
+:host {
+  display: block;
+  font-family: system-ui, sans-serif;
+}
+
+.admin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid currentColor;
+}
+
+.app-name {
+  margin: 0;
+  font-weight: 600;
+}
+
+button {
+  min-height: 44px;
+  padding: 0 0.75rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.admin-main {
+  padding: 1rem;
+}
