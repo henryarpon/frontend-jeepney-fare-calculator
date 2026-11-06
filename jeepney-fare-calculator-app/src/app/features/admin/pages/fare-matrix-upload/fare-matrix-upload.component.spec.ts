@@ -13,6 +13,30 @@ const sampleRows = [
   { distanceKm: 2, regularFare: 14.75, discountedFare: 11.8 },
 ];
 
+/** A 400 ProblemDetails body the back end sends for an invalid fare matrix file. */
+const rejection = {
+  status: 400,
+  title: 'The fare matrix file is invalid.',
+  detail: 'Nothing was saved. Fix the errors listed and try again.',
+  rowErrors: [
+    {
+      row: 3,
+      column: 'RegularFare',
+      message: 'RegularFare must be a number with a dot as the decimal separator, like 13.50.',
+    },
+    {
+      row: 5,
+      column: 'DistanceKm',
+      message: 'DistanceKm must be 4 here. Distances run 1, 2, 3 and so on, with no gaps or duplicates.',
+    },
+    {
+      row: 6,
+      column: null,
+      message: 'Every row must have 3 values (DistanceKm,RegularFare,DiscountedFare), but this one has 2.',
+    },
+  ],
+};
+
 describe('FareMatrixUploadComponent', () => {
   let httpMock: HttpTestingController;
   let harness: RouterTestingHarness;
@@ -60,6 +84,47 @@ describe('FareMatrixUploadComponent', () => {
   it('keeps confirm disabled until the file has been previewed', async () => {
     await fillForm('ModernJeepney', new File([sampleCsv], 'matrix.csv'), '');
 
+    expect(button('Confirm upload').disabled).toBe(true);
+  });
+
+  it('lists every row error instead of the preview when the file is rejected, and keeps confirm disabled', async () => {
+    await fillForm('ModernJeepney', new File([sampleCsv], 'matrix.csv'), '');
+
+    button('Preview').click();
+    httpMock
+      .expectOne('/api/admin/fare-matrices/preview')
+      .flush(rejection, { status: 400, statusText: 'Bad Request' });
+    await harness.fixture.whenStable();
+
+    expect(page().querySelector('table')).toBeNull();
+    const errorItems = Array.from(page().querySelectorAll('.file-errors li')).map((item) =>
+      item.textContent?.replace(/\s+/g, ' ').trim(),
+    );
+    expect(errorItems).toEqual([
+      'Row 3, RegularFare: RegularFare must be a number with a dot as the decimal separator, like 13.50.',
+      'Row 5, DistanceKm: DistanceKm must be 4 here. Distances run 1, 2, 3 and so on, with no gaps or duplicates.',
+      'Row 6: Every row must have 3 values (DistanceKm,RegularFare,DiscountedFare), but this one has 2.',
+    ]);
+    expect(button('Confirm upload').disabled).toBe(true);
+  });
+
+  it('shows the row errors instead of the preview when the upload itself is rejected', async () => {
+    await fillForm('ModernJeepney', new File([sampleCsv], 'matrix.csv'), '');
+    button('Preview').click();
+    httpMock
+      .expectOne('/api/admin/fare-matrices/preview')
+      .flush({ vehicleType: 'ModernJeepney', rows: sampleRows });
+    await harness.fixture.whenStable();
+
+    button('Confirm upload').click();
+    httpMock
+      .expectOne('/api/admin/fare-matrices')
+      .flush(rejection, { status: 400, statusText: 'Bad Request' });
+    await harness.fixture.whenStable();
+
+    expect(page().querySelector('table')).toBeNull();
+    expect(page().querySelectorAll('.file-errors li')).toHaveLength(3);
+    expect(page().querySelector('[role="status"]')).toBeNull();
     expect(button('Confirm upload').disabled).toBe(true);
   });
 

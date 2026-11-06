@@ -25,6 +25,18 @@ export interface FareMatrixPreview {
 }
 
 /**
+ * One reason the back end rejected a fare matrix file (mirrors `FareMatrixFileError`).
+ * A rejection is a 400 ProblemDetails that lists every one under `rowErrors`.
+ */
+export interface FareMatrixFileError {
+  /** The row of the file, counting the header as row 1; `null` when it is about the whole file. */
+  row: number | null;
+  /** The column, e.g. `RegularFare`; `null` when it is about the whole row or file. */
+  column: string | null;
+  message: string;
+}
+
+/**
  * One Fare Matrix Version without its rows (mirrors `FareMatrixVersionSummary`): an item of
  * `GET /api/admin/fare-matrices`, and the body of a successful upload.
  */

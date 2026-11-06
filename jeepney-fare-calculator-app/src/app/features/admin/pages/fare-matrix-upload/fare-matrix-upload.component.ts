@@ -11,16 +11,18 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
+import { FareMatrixFileErrorsComponent } from '../../components/fare-matrix-file-errors/fare-matrix-file-errors.component';
 import { FareMatrixRowsTableComponent } from '../../components/fare-matrix-rows-table/fare-matrix-rows-table.component';
 import { FareMatrixVersionListComponent } from '../../components/fare-matrix-version-list/fare-matrix-version-list.component';
 import {
+  FareMatrixFileError,
   FareMatrixPreview,
   FareMatrixVersionSummary,
   VehicleType,
   vehicleTypeLabel,
   vehicleTypeOptions,
 } from '../../models/fare-matrix.models';
-import { FareMatrixService } from '../../services/fare-matrix.service';
+import { FareMatrixService, fareMatrixFileErrors } from '../../services/fare-matrix.service';
 
 /** Matches the back end's `UploadFareMatrix.NoteMaxLength`. */
 const noteMaxLength = 200;
@@ -32,7 +34,12 @@ const noteMaxLength = 200;
  */
 @Component({
   selector: 'app-fare-matrix-upload',
-  imports: [ReactiveFormsModule, FareMatrixRowsTableComponent, FareMatrixVersionListComponent],
+  imports: [
+    ReactiveFormsModule,
+    FareMatrixFileErrorsComponent,
+    FareMatrixRowsTableComponent,
+    FareMatrixVersionListComponent,
+  ],
   templateUrl: './fare-matrix-upload.component.html',
   styleUrl: './fare-matrix-upload.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -52,6 +59,8 @@ export class FareMatrixUploadComponent {
 
   protected readonly file = signal<File | null>(null);
   protected readonly preview = signal<FareMatrixPreview | null>(null);
+  /** Why the back end rejected the file, shown instead of the preview. */
+  protected readonly fileErrors = signal<FareMatrixFileError[] | null>(null);
   protected readonly busy = signal<'previewing' | 'uploading' | null>(null);
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly uploadedMessage = signal<string | null>(null);
@@ -66,9 +75,13 @@ export class FareMatrixUploadComponent {
     return preview ? `Preview: ${vehicleTypeLabel(preview.vehicleType)}, ${preview.rows.length} rows` : '';
   });
 
-  /** A preview only belongs to the vehicle type and file it was made from, so changing either drops it. */
+  /**
+   * A preview, or the errors found instead, only belongs to the vehicle type and file
+   * it was made from, so changing either drops it.
+   */
   protected clearPreview(): void {
     this.preview.set(null);
+    this.fileErrors.set(null);
   }
 
   protected onFileChosen(event: Event): void {
@@ -83,6 +96,7 @@ export class FareMatrixUploadComponent {
       return;
     }
     this.busy.set('previewing');
+    this.clearPreview();
     this.errorMessage.set(null);
     this.uploadedMessage.set(null);
 
@@ -94,10 +108,8 @@ export class FareMatrixUploadComponent {
           this.busy.set(null);
           this.preview.set(preview);
         },
-        error: () => {
-          this.busy.set(null);
-          this.errorMessage.set("Couldn't preview this file. Check that it is a fare matrix CSV and try again.");
-        },
+        error: (error: unknown) =>
+          this.showFailure(error, "Couldn't preview this file. Check that it is a fare matrix CSV and try again."),
       });
   }
 
@@ -126,11 +138,25 @@ export class FareMatrixUploadComponent {
           this.clearAfterUpload();
           this.loadVersions(version.vehicleType);
         },
-        error: () => {
-          this.busy.set(null);
-          this.errorMessage.set("Couldn't upload this file. Nothing was saved. Please try again.");
-        },
+        error: (error: unknown) =>
+          this.showFailure(error, "Couldn't upload this file. Nothing was saved. Please try again."),
       });
+  }
+
+  /**
+   * Shows why a preview or upload failed: the file's errors instead of the preview when the
+   * back end rejected the file (on upload too, e.g. if it changed after the preview), or
+   * `fallbackMessage` for any other failure.
+   */
+  private showFailure(error: unknown, fallbackMessage: string): void {
+    this.busy.set(null);
+    const fileErrors = fareMatrixFileErrors(error);
+    if (fileErrors) {
+      this.preview.set(null);
+      this.fileErrors.set(fileErrors);
+    } else {
+      this.errorMessage.set(fallbackMessage);
+    }
   }
 
   /** Clears the file, its preview and the note, ready for the next upload. */
