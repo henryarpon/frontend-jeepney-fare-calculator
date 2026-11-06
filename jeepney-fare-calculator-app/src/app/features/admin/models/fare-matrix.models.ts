@@ -49,3 +49,14 @@ export interface FareMatrixVersionSummary {
   isActive: boolean;
   rowCount: number;
 }
+
+/** Body of `GET /api/admin/fare-matrices/{id}`: one Fare Matrix Version with its rows (mirrors `FareMatrixVersionDetails`). */
+export interface FareMatrixVersionDetails {
+  id: number;
+  vehicleType: VehicleType;
+  /** ISO 8601 date and time in UTC. */
+  uploadedAt: string;
+  note: string | null;
+  isActive: boolean;
+  rows: FareMatrixRow[];
+}

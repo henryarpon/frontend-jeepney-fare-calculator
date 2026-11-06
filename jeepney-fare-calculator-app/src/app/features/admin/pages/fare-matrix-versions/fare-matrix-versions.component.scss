@@ -1,0 +1,15 @@
+// The admin screens have no design brief yet (see PRODUCT.md), so this stays plain and accessible.
+:host {
+  display: block;
+  max-width: 40rem;
+}
+
+section {
+  margin-top: 1.5rem;
+}
+
+.error {
+  padding-left: 0.75rem;
+  border-left: 4px solid currentColor;
+  font-weight: 600;
+}

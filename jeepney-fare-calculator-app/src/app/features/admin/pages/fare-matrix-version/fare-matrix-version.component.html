@@ -1,0 +1,56 @@
+<p><a routerLink="/admin/fare-matrices">All versions</a></p>
+
+@if (version(); as version) {
+  <h1>{{ vehicleTypeName() }} fare matrix</h1>
+  <dl class="details">
+    <dt>Uploaded</dt>
+    <dd>{{ version.uploadedAt | date: 'medium' }}</dd>
+    <dt>Note</dt>
+    <dd>{{ version.note ?? 'No note' }}</dd>
+    <dt>Status</dt>
+    <dd>
+      @if (version.isActive) {
+        <strong class="active-badge">Active</strong> It prices every {{ vehicleTypeName() }} trip.
+      } @else {
+        Not active
+      }
+    </dd>
+  </dl>
+
+  @if (reactivatedMessage(); as message) {
+    <p class="notice" role="status">{{ message }}</p>
+  }
+
+  @if (!version.isActive) {
+    @if (reactivation() === 'idle') {
+      <button #reactivateButton type="button" (click)="askToReactivate()">Reactivate</button>
+    } @else {
+      <div class="confirm" role="group" aria-labelledby="confirm-question">
+        <p id="confirm-question">{{ confirmQuestion() }}</p>
+        <div class="confirm-actions">
+          <button
+            #confirmButton
+            type="button"
+            [disabled]="activating()"
+            (click)="confirmReactivation()"
+          >
+            {{ confirmLabel() }}
+          </button>
+          <button type="button" [disabled]="activating()" (click)="cancelReactivation()">
+            Cancel
+          </button>
+        </div>
+      </div>
+    }
+    @if (reactivateError(); as message) {
+      <p class="notice" role="alert">{{ message }}</p>
+    }
+  }
+
+  <app-fare-matrix-rows-table [rows]="version.rows" [caption]="rowsCaption()" />
+} @else if (loadError(); as message) {
+  <h1>Fare matrix version</h1>
+  <p class="notice" role="alert">{{ message }}</p>
+} @else {
+  <p>Loading…</p>
+}

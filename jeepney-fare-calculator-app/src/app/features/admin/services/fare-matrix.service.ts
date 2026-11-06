@@ -6,11 +6,12 @@ import { environment } from '../../../../environments/environment';
 import {
   FareMatrixFileError,
   FareMatrixPreview,
+  FareMatrixVersionDetails,
   FareMatrixVersionSummary,
   VehicleType,
 } from '../models/fare-matrix.models';
 
-/** Talks to the back end about Fare Matrix Versions: preview, upload and list. */
+/** Talks to the back end about Fare Matrix Versions: preview, upload, list, view and reactivate. */
 @Injectable({ providedIn: 'root' })
 export class FareMatrixService {
   private readonly http = inject(HttpClient);
@@ -33,6 +34,19 @@ export class FareMatrixService {
   /** The vehicle type's versions, newest first. */
   listVersions(vehicleType: VehicleType): Observable<FareMatrixVersionSummary[]> {
     return this.http.get<FareMatrixVersionSummary[]>(this.baseUrl, { params: { vehicleType } });
+  }
+
+  /** One version with its rows. Fails with 404 when there is no version with this id. */
+  getVersion(id: number): Observable<FareMatrixVersionDetails> {
+    return this.http.get<FareMatrixVersionDetails>(`${this.baseUrl}/${id}`);
+  }
+
+  /**
+   * Makes the version its vehicle type's Active Fare Matrix again and returns it. The vehicle
+   * type's other active version is deactivated; the other vehicle type is not affected.
+   */
+  activate(id: number): Observable<FareMatrixVersionSummary> {
+    return this.http.post<FareMatrixVersionSummary>(`${this.baseUrl}/${id}/activate`, null);
   }
 }
 

@@ -1,7 +1,9 @@
 <ol class="version-list">
   @for (version of versions(); track version.id) {
     <li>
-      <span class="uploaded-at">Uploaded {{ version.uploadedAt | date: 'medium' }}</span>
+      <a class="uploaded-at" [routerLink]="['/admin/fare-matrices', version.id]">
+        Uploaded {{ version.uploadedAt | date: 'medium' }}
+      </a>
       @if (version.isActive) {
         <strong class="active-badge">Active</strong>
       }
