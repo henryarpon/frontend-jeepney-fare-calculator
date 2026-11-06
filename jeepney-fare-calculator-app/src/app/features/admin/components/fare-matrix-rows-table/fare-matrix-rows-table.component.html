@@ -1,0 +1,19 @@
+<table>
+  <caption>{{ caption() }}</caption>
+  <thead>
+    <tr>
+      <th scope="col">Distance (km)</th>
+      <th scope="col">Regular Fare</th>
+      <th scope="col">Discounted Fare</th>
+    </tr>
+  </thead>
+  <tbody>
+    @for (row of rows(); track row.distanceKm) {
+      <tr>
+        <td>{{ row.distanceKm }}</td>
+        <td>{{ row.regularFare | currency: 'PHP' : 'symbol-narrow' }}</td>
+        <td>{{ row.discountedFare | currency: 'PHP' : 'symbol-narrow' }}</td>
+      </tr>
+    }
+  </tbody>
+</table>

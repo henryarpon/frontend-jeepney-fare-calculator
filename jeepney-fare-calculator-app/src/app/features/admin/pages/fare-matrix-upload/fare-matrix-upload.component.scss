@@ -1,0 +1,52 @@
+// The admin screens have no design brief yet (see PRODUCT.md), so this stays plain and accessible.
+:host {
+  display: block;
+  max-width: 40rem;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+label:not(:first-child) {
+  margin-top: 0.75rem;
+}
+
+select,
+input,
+button {
+  min-height: 44px;
+  font: inherit;
+}
+
+select,
+input[type='text'],
+button {
+  padding: 0 0.75rem;
+}
+
+button {
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.hint {
+  margin: 0;
+}
+
+.preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.error,
+.uploaded {
+  margin: 1rem 0 0;
+  padding-left: 0.75rem;
+  border-left: 4px solid currentColor;
+  font-weight: 600;
+}
