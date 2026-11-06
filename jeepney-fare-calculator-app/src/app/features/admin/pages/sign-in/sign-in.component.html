@@ -1,0 +1,31 @@
+<main class="sign-in">
+  <h1>Administrator sign-in</h1>
+
+  <form [formGroup]="form" (ngSubmit)="signIn()">
+    <label for="username">Username</label>
+    <input
+      id="username"
+      type="text"
+      formControlName="username"
+      autocomplete="username"
+      autocapitalize="none"
+      spellcheck="false"
+      required
+    />
+
+    <label for="password">Password</label>
+    <input
+      id="password"
+      type="password"
+      formControlName="password"
+      autocomplete="current-password"
+      required
+    />
+
+    @if (errorMessage(); as message) {
+      <p class="error" role="alert">{{ message }}</p>
+    }
+
+    <button type="submit" [disabled]="submitting()">{{ submitLabel() }}</button>
+  </form>
+</main>
