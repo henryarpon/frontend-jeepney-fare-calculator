@@ -1,0 +1,19 @@
+<h1>Fare matrix versions</h1>
+<p><a routerLink="upload">Upload a fare matrix</a></p>
+
+@if (groups(); as groups) {
+  @for (group of groups; track group.vehicleType) {
+    <section [attr.aria-labelledby]="'versions-' + group.vehicleType">
+      <h2 [id]="'versions-' + group.vehicleType">{{ group.label }}</h2>
+      @if (group.versions.length > 0) {
+        <app-fare-matrix-version-list [versions]="group.versions" />
+      } @else {
+        <p>{{ group.emptyMessage }}</p>
+      }
+    </section>
+  }
+} @else if (loadFailed()) {
+  <p class="error" role="alert">Couldn't load the versions. Reload the page to try again.</p>
+} @else {
+  <p>Loading versions…</p>
+}
