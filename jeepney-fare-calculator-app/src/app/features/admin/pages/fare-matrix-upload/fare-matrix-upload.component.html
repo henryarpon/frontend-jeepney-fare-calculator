@@ -1,0 +1,57 @@
+<h1>Upload a fare matrix</h1>
+
+<form [formGroup]="form" (ngSubmit)="previewFile()">
+  <label for="vehicle-type">Vehicle Type</label>
+  <select id="vehicle-type" formControlName="vehicleType" (change)="clearPreview()">
+    @for (option of vehicleTypeOptions; track option.value) {
+      <option [value]="option.value">{{ option.label }}</option>
+    }
+  </select>
+
+  <label for="fare-matrix-file">Fare matrix CSV</label>
+  <p id="fare-matrix-file-hint" class="hint">
+    Header row <code>DistanceKm,RegularFare,DiscountedFare</code>, with a dot as the decimal separator.
+  </p>
+  <input
+    #fileInput
+    id="fare-matrix-file"
+    type="file"
+    accept=".csv,text/csv"
+    aria-describedby="fare-matrix-file-hint"
+    (change)="onFileChosen($event)"
+  />
+
+  <label for="note">Note (optional)</label>
+  <input
+    id="note"
+    type="text"
+    formControlName="note"
+    [attr.maxlength]="noteMaxLength"
+    placeholder="e.g. the LTFRB order number"
+  />
+
+  <button type="submit" [disabled]="!canPreview()">{{ previewLabel() }}</button>
+</form>
+
+@if (errorMessage(); as message) {
+  <p class="error" role="alert">{{ message }}</p>
+}
+
+<section class="preview" aria-live="polite">
+  @if (preview(); as preview) {
+    <app-fare-matrix-rows-table [rows]="preview.rows" [caption]="previewCaption()" />
+    <p>Check the rows. Confirming makes this the Active Fare Matrix right away.</p>
+  }
+  <button type="button" [disabled]="!canConfirm()" (click)="confirmUpload()">{{ confirmLabel() }}</button>
+</section>
+
+@if (uploadedMessage(); as message) {
+  <p class="uploaded" role="status">{{ message }}</p>
+}
+
+@if (versions(); as versions) {
+  <section>
+    <h2>Versions</h2>
+    <app-fare-matrix-version-list [versions]="versions" />
+  </section>
+}

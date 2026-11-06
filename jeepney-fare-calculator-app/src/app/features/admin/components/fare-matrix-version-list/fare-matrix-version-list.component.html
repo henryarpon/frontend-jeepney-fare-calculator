@@ -1,0 +1,13 @@
+<ol class="version-list">
+  @for (version of versions(); track version.id) {
+    <li>
+      <span class="uploaded-at">Uploaded {{ version.uploadedAt | date: 'medium' }}</span>
+      @if (version.isActive) {
+        <strong class="active-badge">Active</strong>
+      }
+      <span class="details">
+        {{ version.rowCount }} rows · {{ version.note ?? 'No note' }}
+      </span>
+    </li>
+  }
+</ol>
