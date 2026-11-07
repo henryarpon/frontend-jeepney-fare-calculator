@@ -1,0 +1,177 @@
+.breakdown {
+  padding: var(--space-4);
+  background: var(--color-sheet);
+  border-top: 6px solid var(--color-rule);
+  transition: opacity 150ms ease-out;
+}
+
+.total-amount,
+.guide,
+.line-each,
+.line-fares {
+  margin: 0;
+}
+
+/*
+ * Dimmed, but still legible in sunlight: ink at 60% stays above 4.5:1 on white.
+ * The notice itself is not dimmed: it says why and what to do.
+ */
+.out-of-date > :not(.out-of-date-notice) {
+  opacity: 0.6;
+}
+
+.total-label {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.passengers {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--color-ink-soft);
+}
+
+.total-amount {
+  font-size: clamp(3rem, 14vw, 4.25rem);
+  font-weight: 700;
+  line-height: 1.05;
+}
+
+.guide {
+  color: var(--color-ink-soft);
+}
+
+.out-of-date-notice {
+  margin: var(--space-3) 0 0;
+  padding: var(--space-3);
+  border: 2px solid var(--color-rule);
+  border-radius: var(--radius);
+  font-weight: 600;
+}
+
+.distance {
+  margin: var(--space-4) 0 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.lines {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.line {
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-rule-soft);
+}
+
+/* The passenger type's colour mark, the same square swatch as its stepper. */
+.line-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+
+  &::before {
+    content: '';
+    flex: none;
+    width: 14px;
+    height: 14px;
+    background: var(--line-mark);
+  }
+}
+
+.mark-regular {
+  --line-mark: var(--mark-regular);
+}
+.mark-student {
+  --line-mark: var(--mark-student);
+}
+.mark-senior-citizen {
+  --line-mark: var(--mark-senior-citizen);
+}
+.mark-pwd {
+  --line-mark: var(--mark-pwd);
+}
+
+.line-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-3);
+  font-weight: 700;
+}
+
+.subtotal {
+  font-size: 1.375rem;
+}
+
+.line-each {
+  font-size: 1.0625rem;
+}
+
+.line-fares,
+.version,
+.caveat {
+  color: var(--color-ink-soft);
+  font-size: 0.9375rem;
+}
+
+/* The one place with ruled grid lines: an excerpt of the posted fare matrix. */
+.excerpt {
+  width: 100%;
+  margin-top: var(--space-5);
+  border-collapse: collapse;
+  border: 2px solid var(--color-rule);
+
+  caption {
+    padding: var(--space-2) var(--space-3);
+    background: var(--color-title-band);
+    color: var(--color-on-title-band);
+    font-weight: 700;
+    text-align: left;
+  }
+
+  th,
+  td {
+    padding: var(--space-3);
+    border: 1px solid var(--color-rule);
+    text-align: right;
+  }
+
+  thead th {
+    font-family: var(--font-body);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    text-align: right;
+  }
+
+  thead th:first-child,
+  tbody th {
+    text-align: left;
+  }
+
+  td,
+  tbody th {
+    font-size: 1.125rem;
+  }
+
+  .charged {
+    background: var(--color-highlighter);
+    font-weight: 700;
+  }
+}
+
+.version {
+  margin: var(--space-4) 0 0;
+}
+
+.caveat {
+  margin: var(--space-2) 0 0;
+}

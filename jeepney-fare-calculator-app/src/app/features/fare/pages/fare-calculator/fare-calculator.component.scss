@@ -1,0 +1,177 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+/* The red band across the top of the posted fare guide. */
+.title-band {
+  padding: var(--space-4);
+  background: var(--color-title-band);
+  color: var(--color-on-title-band);
+}
+
+.title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tagline {
+  margin: var(--space-1) 0 0;
+}
+
+.layout {
+  display: grid;
+  gap: var(--space-5);
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: var(--space-4) var(--space-4) var(--space-6);
+}
+
+.inputs {
+  display: grid;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+/* Origin and Destination as one Trip, joined by a single route line. */
+.trip {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-4) var(--space-4) 44px;
+  background: var(--color-sheet);
+  border-radius: var(--radius);
+}
+
+.stop {
+  position: relative;
+
+  /* The stop's dot on the route line: hollow for Origin, filled for Destination. */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 4px;
+    left: -32px;
+    width: 12px;
+    height: 12px;
+    border: 2px solid var(--color-ink);
+    border-radius: 50%;
+    background: var(--color-sheet);
+  }
+
+  &:last-child::before {
+    background: var(--color-ink);
+  }
+
+  /* The route line, from the Origin dot down to the Destination dot. */
+  &:first-child::after {
+    content: '';
+    position: absolute;
+    top: 16px;
+    bottom: calc(-1 * var(--space-4) - 4px);
+    left: -27px;
+    width: 2px;
+    background: var(--color-ink);
+  }
+}
+
+/* Calculate stays at thumb height while the inputs are on screen. */
+.calculate-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  display: grid;
+  gap: var(--space-2);
+  margin: 0 calc(-1 * var(--space-4));
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-page);
+  border-top: 1px solid var(--color-rule-soft);
+}
+
+.hint,
+.error {
+  margin: 0;
+  font-size: 0.9375rem;
+}
+
+.hint {
+  color: var(--color-ink-soft);
+}
+
+.error {
+  color: var(--color-error);
+  font-weight: 600;
+}
+
+.calculate {
+  min-height: 56px;
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--color-action);
+  color: var(--color-on-action);
+  font-size: 1.125rem;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:active:not(:disabled) {
+    background: var(--color-action-pressed);
+  }
+
+  &:disabled {
+    background: var(--color-disabled);
+    cursor: not-allowed;
+  }
+
+  &[aria-busy='true'] {
+    cursor: progress;
+  }
+}
+
+.result {
+  min-width: 0;
+  scroll-margin-top: var(--space-4);
+
+  /* Focused from code after Calculate, for screen readers; never reached by Tab. */
+  &:focus {
+    outline: none;
+  }
+}
+
+/* Only at desktop width, where the result has its own column. */
+.result-empty {
+  display: none;
+  margin: 0;
+  padding: var(--space-5);
+  border: 2px dashed var(--color-rule-soft);
+  border-radius: var(--radius);
+  color: var(--color-ink-soft);
+}
+
+/* Desktop: inputs on the left, the result stays in view on the right. */
+@media (min-width: 60rem) {
+  .title-band {
+    padding-inline: max(var(--space-4), calc((100% - 72rem) / 2 + var(--space-4)));
+  }
+
+  .layout {
+    grid-template-columns: minmax(0, 26rem) minmax(0, 1fr);
+    align-items: start;
+    gap: var(--space-6);
+  }
+
+  .calculate-bar {
+    margin: 0;
+    padding-inline: 0;
+  }
+
+  .result {
+    position: sticky;
+    top: var(--space-4);
+  }
+
+  .result-empty {
+    display: block;
+  }
+}

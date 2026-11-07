@@ -1,0 +1,43 @@
+.vehicle-type {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.segments {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border: 2px solid var(--color-ink);
+  border-radius: var(--radius);
+  background: var(--color-sheet);
+  overflow: hidden;
+}
+
+.segment {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--tap-target);
+  padding: var(--space-2) var(--space-3);
+  text-align: center;
+  font-weight: 600;
+  cursor: pointer;
+
+  &.on {
+    background: var(--color-ink);
+    color: var(--color-sheet);
+  }
+
+  /* The radio itself is hidden; its label is the segment. Focus shows on the segment. */
+  input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  &:has(input:focus-visible) {
+    outline: var(--focus-ring);
+    outline-offset: -5px;
+  }
+}

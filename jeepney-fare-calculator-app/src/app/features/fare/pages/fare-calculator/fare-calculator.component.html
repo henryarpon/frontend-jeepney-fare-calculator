@@ -1,0 +1,64 @@
+<header class="title-band">
+  <h1 class="title">Jeepney Fare Calculator</h1>
+  <p class="tagline">About what a jeepney trip should cost your Party.</p>
+</header>
+
+<main class="layout">
+  <div class="inputs">
+    <app-vehicle-type-selector [value]="vehicleType()" (valueChange)="form.controls.vehicleType.setValue($event)" />
+
+    <div class="trip">
+      <app-place-field
+        class="stop"
+        label="Origin"
+        fieldId="origin"
+        [selected]="origin()"
+        [suggestions]="originSearch.suggestions()"
+        [status]="originSearch.status()"
+        (queryChange)="originSearch.query($event)"
+        (placeSelect)="setOrigin($event)"
+        (placeClear)="setOrigin(null)"
+      />
+      <app-place-field
+        class="stop"
+        label="Destination"
+        fieldId="destination"
+        [selected]="destination()"
+        [suggestions]="destinationSearch.suggestions()"
+        [status]="destinationSearch.status()"
+        (queryChange)="destinationSearch.query($event)"
+        (placeSelect)="setDestination($event)"
+        (placeClear)="setDestination(null)"
+      />
+    </div>
+
+    <app-party-steppers [party]="party()" (partyChange)="form.controls.party.setValue($event)" />
+
+    <div class="calculate-bar">
+      @if (failed()) {
+        <p class="error" role="alert">Couldn't calculate the fare. Please try again.</p>
+      }
+      @if (calculateHint(); as hint) {
+        <p class="hint" id="calculate-hint">{{ hint }}</p>
+      }
+      <button
+        type="button"
+        class="calculate"
+        [disabled]="!canCalculate()"
+        [attr.aria-busy]="calculating() ? 'true' : null"
+        [attr.aria-describedby]="calculateHint() ? 'calculate-hint' : null"
+        (click)="calculate()"
+      >
+        {{ calculating() ? 'Calculating…' : 'Calculate' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="result" #resultPanel tabindex="-1">
+    @if (result(); as fare) {
+      <app-fare-breakdown [breakdown]="fare.breakdown" [vehicleType]="fare.vehicleType" [outOfDate]="outOfDate()" />
+    } @else {
+      <p class="result-empty">Tap Calculate to see the Total Fare for your Party and how it was reached.</p>
+    }
+  </div>
+</main>

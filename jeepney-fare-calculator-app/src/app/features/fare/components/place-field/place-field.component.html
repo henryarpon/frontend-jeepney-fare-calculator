@@ -1,0 +1,48 @@
+@if (selected(); as place) {
+  <div class="chosen" role="group" [attr.aria-labelledby]="fieldId() + '-label'">
+    <span class="chosen-text">
+      <span class="label" [id]="fieldId() + '-label'">{{ label() }}</span>
+      <span class="place-name">{{ place.label }}</span>
+    </span>
+    <button #changeButton type="button" class="change" [attr.aria-label]="'Change ' + label()" (click)="change()">
+      Change
+    </button>
+  </div>
+} @else {
+  <div class="search">
+    <label class="label" [for]="fieldId() + '-input'">{{ label() }}</label>
+    <input
+      #searchInput
+      type="search"
+      role="combobox"
+      autocomplete="off"
+      enterkeyhint="search"
+      [id]="fieldId() + '-input'"
+      placeholder="Search for a place"
+      [formControl]="searchControl"
+      [attr.aria-expanded]="listOpen()"
+      [attr.aria-controls]="listboxId()"
+      [attr.aria-activedescendant]="activeOptionId()"
+      [attr.aria-describedby]="messageId()"
+      aria-autocomplete="list"
+      (keydown)="onKeydown($event)"
+    />
+    <p class="message" [id]="messageId()" aria-live="polite" [class.failed]="status() === 'failed'">
+      {{ message() }}
+    </p>
+    <ul class="suggestions" role="listbox" [id]="listboxId()" [hidden]="!listOpen()" [attr.aria-label]="label() + ' suggestions'">
+      @for (place of suggestions(); track place.id; let index = $index) {
+        <li
+          role="option"
+          class="suggestion"
+          [id]="fieldId() + '-option-' + index"
+          [class.active]="index === activeIndex()"
+          [attr.aria-selected]="index === activeIndex()"
+          (click)="choose(place)"
+        >
+          {{ place.label }}
+        </li>
+      }
+    </ul>
+  </div>
+}

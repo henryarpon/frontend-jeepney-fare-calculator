@@ -1,0 +1,38 @@
+<fieldset class="party">
+  <legend>Party <span class="total">· {{ total() }} {{ total() === 1 ? 'passenger' : 'passengers' }}</span></legend>
+
+  <ul class="steppers">
+    @for (stepper of steppers(); track stepper.passengerType) {
+      <li class="stepper" [class]="'mark-' + stepper.mark">
+        <span class="label" [id]="'stepper-' + stepper.passengerType">{{ stepper.label }}</span>
+        <span class="controls">
+          <button
+            type="button"
+            class="step"
+            [attr.aria-label]="'Remove one ' + stepper.label"
+            [disabled]="!stepper.canRemove"
+            (click)="change(stepper.passengerType, -1)"
+          >
+            −
+          </button>
+          <output class="count" aria-live="polite" [attr.aria-labelledby]="'stepper-' + stepper.passengerType">
+            {{ stepper.count }}
+          </output>
+          <button
+            type="button"
+            class="step"
+            [attr.aria-label]="'Add one ' + stepper.label"
+            [disabled]="!stepper.canAdd"
+            (click)="change(stepper.passengerType, 1)"
+          >
+            +
+          </button>
+        </span>
+      </li>
+    }
+  </ul>
+
+  @if (atMaximum()) {
+    <p class="hint">A Party can have up to {{ maxPartySize }} passengers.</p>
+  }
+</fieldset>
