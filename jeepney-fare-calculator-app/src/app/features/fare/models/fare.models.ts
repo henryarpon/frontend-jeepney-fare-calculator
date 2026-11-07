@@ -34,14 +34,44 @@ export function partySize(party: PartyCounts): number {
   return passengerTypeOptions.reduce((total, option) => total + party[option.value], 0);
 }
 
-/** A point picked from place search: its name and where it is. */
-export interface Place {
+/** A point on the map in decimal degrees (mirrors the back end's `CoordinatesDto` and `RoutePointDto`). */
+export interface LatLng {
+  lat: number;
+  lng: number;
+}
+
+/** An Origin or Destination: its name and where it is. Picked from search, or pinned on the map. */
+export interface Place extends LatLng {
   /** Unique per place, for tracking lists. */
   id: string;
   /** A readable name such as "Quiapo Church, Manila". It can be long. */
   label: string;
-  lat: number;
-  lng: number;
+}
+
+/**
+ * A spot pinned on the map (or found by "use my location") before, or without, a
+ * place name: it is named by its coordinates until Photon's reverse lookup names it.
+ */
+export function pinnedPlace(point: LatLng): Place {
+  return {
+    id: `pin:${point.lat},${point.lng}`,
+    label: `Pinned spot (${point.lat.toFixed(5)}, ${point.lng.toFixed(5)})`,
+    lat: point.lat,
+    lng: point.lng,
+  };
+}
+
+/**
+ * Names pinned spots with Photon's reverse lookup, for one end of the Trip.
+ * Only the latest pin is named; an older lookup still running is dropped.
+ */
+export interface PinLookup {
+  /** True while the latest pin's name is being looked up. */
+  readonly lookingUp: () => boolean;
+  /** Starts naming the spot. */
+  pin(point: LatLng): void;
+  /** Drops any lookup still running, e.g. because a place was picked from search instead. */
+  cancel(): void;
 }
 
 /** Place suggestions start after this many characters, so short queries don't flood Photon. */
@@ -64,8 +94,8 @@ export interface PlaceSearch {
 /** Body of `POST /api/fares/calculate` (mirrors `CalculateFareRequest`). */
 export interface CalculateFareRequest {
   vehicleType: VehicleType;
-  origin: { lat: number; lng: number };
-  destination: { lat: number; lng: number };
+  origin: LatLng;
+  destination: LatLng;
   party: { passengerType: PassengerType; count: number }[];
 }
 
@@ -114,4 +144,13 @@ export interface FareBreakdown {
   };
   /** The charged row with the row before and after it, where the matrix has them. */
   matrixExcerpt: FareMatrixRow[];
+  /** The road path the Estimated Distance was measured along, from the Origin to the Destination. */
+  routeLine: LatLng[];
 }
+
+/**
+ * Why "use my location" found no Origin:
+ * - `denied`: the commuter (or the browser) blocked location access.
+ * - `unavailable`: the location couldn't be found in time, or the browser can't share it.
+ */
+export type CurrentLocationProblem = 'denied' | 'unavailable';

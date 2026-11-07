@@ -3,6 +3,7 @@
     <span class="chosen-text">
       <span class="label" [id]="fieldId() + '-label'">{{ label() }}</span>
       <span class="place-name">{{ place.label }}</span>
+      <span class="lookup" aria-live="polite">{{ lookingUp() ? 'Looking up the place name…' : '' }}</span>
     </span>
     <button #changeButton type="button" class="change" [attr.aria-label]="'Change ' + label()" (click)="change()">
       Change
@@ -44,5 +45,7 @@
         </li>
       }
     </ul>
+    <!-- Other ways to set this place, such as "use my location" for the Origin. -->
+    <ng-content />
   </div>
 }
