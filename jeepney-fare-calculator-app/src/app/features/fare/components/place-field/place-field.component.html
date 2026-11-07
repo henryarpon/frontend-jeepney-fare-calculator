@@ -19,13 +19,12 @@
       enterkeyhint="search"
       [id]="fieldId() + '-input'"
       placeholder="Search for a place"
-      [value]="text()"
+      [formControl]="searchControl"
       [attr.aria-expanded]="listOpen()"
       [attr.aria-controls]="listboxId()"
       [attr.aria-activedescendant]="activeOptionId()"
       [attr.aria-describedby]="messageId()"
       aria-autocomplete="list"
-      (input)="onInput($event)"
       (keydown)="onKeydown($event)"
     />
     <p class="message" [id]="messageId()" aria-live="polite" [class.failed]="status() === 'failed'">

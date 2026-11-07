@@ -149,6 +149,33 @@ describe('FareCalculatorComponent', () => {
     expect(suggestionTexts('origin')).toEqual(['Cubao, Quezon City']);
   });
 
+  it('drops the suggestions for older text as soon as the commuter types more', async () => {
+    await type('origin', 'Cubao');
+    (await expectPhotonSearch()).flush({ features: [cubao] });
+    await harness.fixture.whenStable();
+    expect(suggestions('origin')).toHaveLength(1);
+
+    await type('origin', 'Cubao Far');
+
+    expect(page().querySelector('#origin-suggestions')?.hasAttribute('hidden')).toBe(true);
+    expect(page().textContent).toContain('Searching…');
+    (await expectPhotonSearch()).flush({ features: [] });
+  });
+
+  it('closes the suggestions on Escape and keeps the typed text', async () => {
+    await type('origin', 'Cubao');
+    (await expectPhotonSearch()).flush({ features: [cubao] });
+    await harness.fixture.whenStable();
+
+    const escape = new KeyboardEvent('keydown', { key: 'Escape', cancelable: true });
+    searchBox('origin').dispatchEvent(escape);
+    await harness.fixture.whenStable();
+
+    expect(escape.defaultPrevented).toBe(true);
+    expect(searchBox('origin').value).toBe('Cubao');
+    expect(page().querySelector('#origin-suggestions')?.hasAttribute('hidden')).toBe(true);
+  });
+
   it('does not show the old suggestions again when a chosen place is changed', async () => {
     await choosePlace('origin', cubao);
 

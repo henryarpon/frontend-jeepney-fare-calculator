@@ -11,6 +11,8 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
 import { minQueryLength, Place, PlaceSearchStatus } from '../../models/fare.models';
 
@@ -21,6 +23,7 @@ import { minQueryLength, Place, PlaceSearchStatus } from '../../models/fare.mode
  */
 @Component({
   selector: 'app-place-field',
+  imports: [ReactiveFormsModule],
   templateUrl: './place-field.component.html',
   styleUrl: './place-field.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -42,7 +45,9 @@ export class PlaceFieldComponent {
   /** The commuter wants to pick a different place. */
   readonly placeClear = output<void>();
 
-  protected readonly text = signal('');
+  /** The text typed in the search box. */
+  protected readonly searchControl = new FormControl('', { nonNullable: true });
+  private readonly text = toSignal(this.searchControl.valueChanges, { initialValue: '' });
   protected readonly activeIndex = signal(-1);
   /** Suggestions stay closed after a choice or Escape, until the commuter types again. */
   protected readonly dismissed = signal(false);
@@ -78,12 +83,13 @@ export class PlaceFieldComponent {
     }
   });
 
-  protected onInput(event: Event): void {
-    const text = (event.target as HTMLInputElement).value;
-    this.text.set(text);
-    this.activeIndex.set(-1);
-    this.dismissed.set(false);
-    this.queryChange.emit(text);
+  constructor() {
+    // Every change to the text, typed or cleared by "Change", starts a new search.
+    this.searchControl.valueChanges.pipe(takeUntilDestroyed()).subscribe((text) => {
+      this.activeIndex.set(-1);
+      this.dismissed.set(false);
+      this.queryChange.emit(text);
+    });
   }
 
   protected onKeydown(event: KeyboardEvent): void {
@@ -107,6 +113,8 @@ export class PlaceFieldComponent {
         }
         break;
       case 'Escape':
+        // In a search box the browser would also clear the text; only close the list.
+        event.preventDefault();
         this.dismissed.set(true);
         break;
     }
@@ -121,9 +129,7 @@ export class PlaceFieldComponent {
   }
 
   protected change(): void {
-    this.text.set('');
-    this.dismissed.set(false);
-    this.queryChange.emit('');
+    this.searchControl.setValue('');
     this.placeClear.emit();
     afterNextRender(() => this.searchInput()?.nativeElement.focus(), { injector: this.injector });
   }

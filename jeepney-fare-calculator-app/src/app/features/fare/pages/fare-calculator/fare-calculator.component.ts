@@ -10,8 +10,9 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Subscription } from 'rxjs';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { FormControl, FormGroup } from '@angular/forms';
+import { map, Subscription } from 'rxjs';
 
 import { VehicleType } from '../../../../shared/models/vehicle-type.models';
 import { FareBreakdownComponent } from '../../components/fare-breakdown/fare-breakdown.component';
@@ -57,10 +58,23 @@ export class FareCalculatorComponent {
   protected readonly originSearch = this.placeSearch.createSearch(this.destroyRef);
   protected readonly destinationSearch = this.placeSearch.createSearch(this.destroyRef);
 
-  protected readonly vehicleType = signal<VehicleType>('TraditionalJeepney');
-  protected readonly origin = signal<Place | null>(null);
-  protected readonly destination = signal<Place | null>(null);
-  protected readonly party = signal<PartyCounts>(initialParty);
+  /** The trip as the commuter has set it up. The child components report changes into it. */
+  protected readonly form = new FormGroup({
+    vehicleType: new FormControl<VehicleType>('TraditionalJeepney', { nonNullable: true }),
+    origin: new FormControl<Place | null>(null),
+    destination: new FormControl<Place | null>(null),
+    party: new FormControl<PartyCounts>(initialParty, { nonNullable: true }),
+  });
+
+  /** The form's value as a signal, so the state below follows it. */
+  private readonly trip = toSignal(this.form.valueChanges.pipe(map(() => this.form.getRawValue())), {
+    initialValue: this.form.getRawValue(),
+  });
+
+  protected readonly vehicleType = computed(() => this.trip().vehicleType);
+  protected readonly origin = computed(() => this.trip().origin);
+  protected readonly destination = computed(() => this.trip().destination);
+  protected readonly party = computed(() => this.trip().party);
 
   protected readonly result = signal<FareResult | null>(null);
   protected readonly calculating = signal(false);
@@ -100,13 +114,13 @@ export class FareCalculatorComponent {
 
   /** A different Origin is a different trip, so any fare shown no longer applies. */
   protected setOrigin(place: Place | null): void {
-    this.origin.set(place);
+    this.form.controls.origin.setValue(place);
     this.forgetFare();
   }
 
   /** A different Destination is a different trip, so any fare shown no longer applies. */
   protected setDestination(place: Place | null): void {
-    this.destination.set(place);
+    this.form.controls.destination.setValue(place);
     this.forgetFare();
   }
 

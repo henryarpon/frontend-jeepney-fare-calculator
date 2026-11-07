@@ -29,9 +29,9 @@ export class PlaceSearchService {
   /**
    * Starts the suggestions for one search field. Searches wait for at least
    * 3 characters and a 300 ms pause. Each new query at once cancels the pause
-   * and any search still running for an older one, and text too short to
-   * search clears the suggestions straight away. It stops when `destroyRef`
-   * is destroyed.
+   * and any search still running for an older one, and clears the older
+   * suggestions straight away (status `searching` during the pause, or `idle`
+   * when the text is too short to search). It stops when `destroyRef` is destroyed.
    */
   createSearch(destroyRef: DestroyRef): PlaceSearch {
     const suggestions = signal<Place[]>([]);
@@ -44,10 +44,11 @@ export class PlaceSearchService {
         switchMap((text) =>
           text.length < minQueryLength
             ? of({ status: 'idle' as const, places: [] })
-            : timer(searchPauseMs).pipe(
-                switchMap(() =>
-                  concat(
-                    of({ status: 'searching' as const, places: [] }),
+            : concat(
+                // Drop the older query's suggestions at once, so none can be picked for text that changed.
+                of({ status: 'searching' as const, places: [] }),
+                timer(searchPauseMs).pipe(
+                  switchMap(() =>
                     this.search(text).pipe(
                       map((places) => ({ status: 'done' as const, places })),
                       catchError(() => of({ status: 'failed' as const, places: [] })),

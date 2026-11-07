@@ -5,7 +5,7 @@
 
 <main class="layout">
   <div class="inputs">
-    <app-vehicle-type-selector [value]="vehicleType()" (valueChange)="vehicleType.set($event)" />
+    <app-vehicle-type-selector [value]="vehicleType()" (valueChange)="form.controls.vehicleType.setValue($event)" />
 
     <div class="trip">
       <app-place-field
@@ -32,7 +32,7 @@
       />
     </div>
 
-    <app-party-steppers [party]="party()" (partyChange)="party.set($event)" />
+    <app-party-steppers [party]="party()" (partyChange)="form.controls.party.setValue($event)" />
 
     <div class="calculate-bar">
       @if (failed()) {
