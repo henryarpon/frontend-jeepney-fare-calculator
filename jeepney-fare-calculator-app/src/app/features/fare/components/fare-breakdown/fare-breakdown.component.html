@@ -1,0 +1,67 @@
+@let fare = breakdown();
+<section class="breakdown" [class.out-of-date]="outOfDate()" aria-labelledby="total-fare-heading">
+  <header class="total">
+    <h2 id="total-fare-heading" class="total-label">
+      Total Fare <span class="passengers">· {{ passengerCount() }} {{ passengerCount() === 1 ? 'passenger' : 'passengers' }}</span>
+    </h2>
+    <p class="total-amount placard-figures">{{ fare.totalFare | currency: 'PHP' : 'symbol-narrow' }}</p>
+    <p class="guide">About what your party should pay.</p>
+  </header>
+
+  @if (outOfDate()) {
+    <p class="out-of-date-notice" role="status">
+      The Party or Vehicle Type changed, so this fare is out of date. Tap Calculate to update it.
+    </p>
+  }
+
+  <p class="distance">
+    <span class="placard-figures">{{ fare.estimatedDistanceKm | number: '1.1-1' }} km</span> · charged as
+    <span class="placard-figures">{{ fare.chargedDistanceKm }} km</span>
+  </p>
+
+  <ul class="lines">
+    @for (line of lines(); track line.passengerType) {
+      <li class="line" [class]="'mark-' + line.mark">
+        <div class="line-head">
+          <span class="line-label">{{ line.label }}</span>
+          <span class="subtotal placard-figures">{{ line.subtotal | currency: 'PHP' : 'symbol-narrow' }}</span>
+        </div>
+        <p class="line-each placard-figures">
+          {{ line.farePerPassenger | currency: 'PHP' : 'symbol-narrow' }} × {{ line.count }}
+        </p>
+        <p class="line-fares">
+          Regular Fare {{ line.regularFare | currency: 'PHP' : 'symbol-narrow' }} · Discount
+          {{ line.discount | currency: 'PHP' : 'symbol-narrow' }}
+        </p>
+      </li>
+    }
+  </ul>
+
+  <table class="excerpt">
+    <caption>From the fare matrix</caption>
+    <thead>
+      <tr>
+        <th scope="col">Distance</th>
+        <th scope="col">Regular Fare</th>
+        <th scope="col">Discounted Fare</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of excerpt(); track row.distanceKm) {
+        <tr [class.charged]="row.charged" [attr.aria-current]="row.charged ? 'true' : null">
+          <th scope="row" class="placard-figures">{{ row.distanceKm }} km</th>
+          <td class="placard-figures">{{ row.regularFare | currency: 'PHP' : 'symbol-narrow' }}</td>
+          <td class="placard-figures">{{ row.discountedFare | currency: 'PHP' : 'symbol-narrow' }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+
+  <p class="version">
+    {{ vehicleTypeName() }} fare matrix · uploaded {{ fare.fareMatrixVersion.uploadedAt | date: 'd MMM y' }}
+    @if (fare.fareMatrixVersion.note) {
+      · {{ fare.fareMatrixVersion.note }}
+    }
+  </p>
+  <p class="caveat">Based on the estimated road distance. The jeepney's actual route may differ.</p>
+</section>

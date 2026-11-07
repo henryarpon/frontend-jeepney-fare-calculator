@@ -1,0 +1,108 @@
+.party {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+legend {
+  padding: 0;
+  margin-bottom: var(--space-2);
+  font-weight: 700;
+}
+
+.total {
+  font-weight: 400;
+  color: var(--color-ink-soft);
+}
+
+.steppers {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3);
+  background: var(--color-sheet);
+  border-radius: var(--radius);
+}
+
+.mark-regular {
+  --stepper-mark: var(--mark-regular);
+}
+.mark-student {
+  --stepper-mark: var(--mark-student);
+}
+.mark-senior-citizen {
+  --stepper-mark: var(--mark-senior-citizen);
+}
+.mark-pwd {
+  --stepper-mark: var(--mark-pwd);
+}
+
+/* The passenger type's colour mark: a small square swatch before its name. */
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 600;
+
+  &::before {
+    content: '';
+    flex: none;
+    width: 14px;
+    height: 14px;
+    background: var(--stepper-mark);
+  }
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.step {
+  width: var(--tap-target);
+  height: var(--tap-target);
+  border: 2px solid var(--color-action);
+  border-radius: 50%;
+  background: var(--color-sheet);
+  color: var(--color-action);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+
+  &:active:not(:disabled) {
+    background: var(--color-action);
+    color: var(--color-on-action);
+  }
+
+  &:disabled {
+    border-color: var(--color-rule-soft);
+    color: var(--color-disabled);
+    cursor: not-allowed;
+  }
+}
+
+.count {
+  min-width: 2.5ch;
+  text-align: center;
+  font-family: var(--font-placard);
+  font-stretch: condensed;
+  font-variant-numeric: tabular-nums;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.hint {
+  margin: var(--space-2) 0 0;
+  color: var(--color-ink-soft);
+  font-size: 0.9375rem;
+}

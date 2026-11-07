@@ -1,1 +1,106 @@
-/* You can add global styles to this file, and also import other style files */
+/*
+ * Global styles and design tokens.
+ *
+ * The commuter screen follows the "Fare Matrix Placard" direction (PRODUCT.md):
+ * the laminated LTFRB fare guide posted inside jeepneys. White sheet surfaces,
+ * ink-black ruled lines, a red title band, highlighter yellow, and Philippine
+ * blue for actions. Light theme only: it is used outdoors in sunlight.
+ */
+:root {
+  // Surfaces and ink
+  --color-page: #eceef0;
+  --color-sheet: #ffffff;
+  --color-ink: #15171a;
+  --color-ink-soft: #464b51;
+  --color-rule: #15171a;
+  --color-rule-soft: #c8ccd1;
+
+  // Placard accents
+  --color-title-band: #c8102e;
+  --color-on-title-band: #ffffff;
+  --color-highlighter: #ffe45c;
+  --color-action: #0038a8;
+  --color-action-pressed: #002a7f;
+  --color-on-action: #ffffff;
+  --color-disabled: #8d939a;
+  --color-error: #b3261e;
+
+  // One fixed colour mark per Passenger Type, used in its stepper and breakdown row.
+  --mark-regular: #15171a;
+  --mark-student: #0038a8;
+  --mark-senior-citizen: #1e7a46;
+  --mark-pwd: #7b3fa0;
+
+  // Type. The placard face for amounts is a condensed system font (no download on
+  // weak data, decided 2026-11-07); it looks a little different from phone to phone.
+  --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-placard: 'Roboto Condensed', 'Arial Narrow', 'Helvetica Neue Condensed', 'sans-serif-condensed',
+    'Liberation Sans Narrow', sans-serif;
+
+  // Spacing and shape
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --radius: 10px;
+  --tap-target: 48px;
+  --focus-ring: 3px solid var(--color-action);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-page);
+  color: var(--color-ink);
+  font: 16px/1.45 var(--font-body);
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* Amounts in the placard face, with figures that line up in columns. */
+.placard-figures {
+  font-family: var(--font-placard);
+  font-stretch: condensed;
+  font-variant-numeric: tabular-nums;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

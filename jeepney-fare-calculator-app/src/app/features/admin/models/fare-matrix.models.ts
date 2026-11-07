@@ -1,22 +1,10 @@
-/** Mirrors the back end's `VehicleType` enum, sent and received by name. */
-export type VehicleType = 'TraditionalJeepney' | 'ModernJeepney';
+import { FareMatrixRow } from '../../../shared/models/fare-matrix-row.models';
+import { VehicleType } from '../../../shared/models/vehicle-type.models';
 
-/** The vehicle types in the order the Administrator picks from, with their display names. */
-export const vehicleTypeOptions: readonly { value: VehicleType; label: string }[] = [
-  { value: 'TraditionalJeepney', label: 'Traditional Jeepney' },
-  { value: 'ModernJeepney', label: 'Modern Jeepney' },
-];
-
-export function vehicleTypeLabel(vehicleType: VehicleType): string {
-  return vehicleTypeOptions.find((option) => option.value === vehicleType)?.label ?? vehicleType;
-}
-
-/** One row of a fare matrix (mirrors `FareMatrixRowDto`). */
-export interface FareMatrixRow {
-  distanceKm: number;
-  regularFare: number;
-  discountedFare: number;
-}
+// The commuter page uses vehicle types and fare matrix rows too, so they live in `shared`.
+export { vehicleTypeLabel, vehicleTypeOptions } from '../../../shared/models/vehicle-type.models';
+export type { VehicleType } from '../../../shared/models/vehicle-type.models';
+export type { FareMatrixRow } from '../../../shared/models/fare-matrix-row.models';
 
 /** Body of `POST /api/admin/fare-matrices/preview` (mirrors `FareMatrixPreview`). */
 export interface FareMatrixPreview {
