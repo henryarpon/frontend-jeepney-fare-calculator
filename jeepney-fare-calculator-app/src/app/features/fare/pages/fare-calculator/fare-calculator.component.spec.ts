@@ -301,6 +301,113 @@ describe('FareCalculatorComponent', () => {
     expect(calculateButton().getAttribute('aria-busy')).toBeNull();
   });
 
+  /** Chooses both places, taps Calculate and answers with an error. */
+  async function calculateAndFail(status: number, body: object | null): Promise<void> {
+    await chooseBothPlaces();
+    calculateButton().click();
+    httpMock.expectOne('/api/fares/calculate').flush(body, { status, statusText: 'Error' });
+    await harness.fixture.whenStable();
+  }
+
+  /** A 422 ProblemDetails body as the back end sends it for a trip it can't price. */
+  function notPriced(reason: string) {
+    return { status: 422, title: "The trip can't be priced.", detail: 'Message from the server.', reason };
+  }
+
+  function alertText(): string {
+    return page().querySelector('[role="alert"]')?.textContent?.replace(/\s+/g, ' ').trim() ?? '';
+  }
+
+  it("shows the back end's message when the trip can't be priced", async () => {
+    await calculateAndFail(422, notPriced('NoRoute'));
+
+    expect(alertText()).toBe('Message from the server.');
+  });
+
+  it("asks to try again when the back end gives no message for a trip it can't price", async () => {
+    await calculateAndFail(422, { status: 422, reason: 'NoRoute' });
+
+    expect(alertText()).toBe("Couldn't calculate the fare. Please try again.");
+  });
+
+  it('removes the message when the Vehicle Type changes', async () => {
+    await calculateAndFail(422, notPriced('NoActiveFareMatrix'));
+
+    page().querySelector<HTMLInputElement>('input[type="radio"][value="ModernJeepney"]')!.click();
+    await harness.fixture.whenStable();
+
+    expect(page().querySelector('[role="alert"]')).toBeNull();
+  });
+
+  it('removes the message when the Party changes', async () => {
+    await calculateAndFail(400, {
+      status: 400,
+      errors: { '$.party': ['The party has 31 passengers in total. It must have 1 to 30.'] },
+    });
+
+    page().querySelector<HTMLButtonElement>('button[aria-label="Add one Student"]')!.click();
+    await harness.fixture.whenStable();
+
+    expect(page().querySelector('[role="alert"]')).toBeNull();
+  });
+
+  it('asks to try again when the distance could not be estimated', async () => {
+    await calculateAndFail(503, { status: 503, detail: "Couldn't estimate the distance right now, please try again." });
+
+    expect(alertText()).toBe("Couldn't estimate the distance right now, please try again.");
+  });
+
+  it('lists what the back end did not accept in the trip', async () => {
+    await calculateAndFail(400, {
+      status: 400,
+      title: 'The request is invalid.',
+      errors: { '$.party': ['The party has 31 passengers in total. It must have 1 to 30.'] },
+    });
+
+    expect(page().querySelector('[role="alert"] p')?.textContent?.trim()).toBe(
+      "Some trip details weren't accepted. Check them and try again.",
+    );
+    const details = page().querySelectorAll('[role="alert"] li');
+    expect(details).toHaveLength(1);
+    expect(details[0].textContent?.trim()).toBe('The party has 31 passengers in total. It must have 1 to 30.');
+  });
+
+  it('says when the fare calculator could not be reached', async () => {
+    await chooseBothPlaces();
+    calculateButton().click();
+    httpMock.expectOne('/api/fares/calculate').error(new ProgressEvent('error'));
+    await harness.fixture.whenStable();
+
+    expect(alertText()).toBe("Couldn't reach the fare calculator. Check your mobile data or Wi-Fi and try again.");
+  });
+
+  it('clears the earlier fare when the next calculation gives none', async () => {
+    await calculateSampleTrip();
+    page().querySelector<HTMLButtonElement>('button[aria-label="Add one Student"]')!.click();
+    await harness.fixture.whenStable();
+
+    calculateButton().click();
+    httpMock.expectOne('/api/fares/calculate').flush(notPriced('BeyondFareMatrix'), {
+      status: 422,
+      statusText: 'Unprocessable Entity',
+    });
+    await harness.fixture.whenStable();
+
+    expect(page().querySelector('.breakdown')).toBeNull();
+    expect(alertText()).toBe('Message from the server.');
+  });
+
+  it('removes the message once a later calculation gives a fare', async () => {
+    await calculateAndFail(503, null);
+
+    calculateButton().click();
+    httpMock.expectOne('/api/fares/calculate').flush(sampleBreakdown);
+    await harness.fixture.whenStable();
+
+    expect(page().querySelector('[role="alert"]')).toBeNull();
+    expect(page().querySelector('.breakdown')).not.toBeNull();
+  });
+
   it('says so when the fare could not be calculated', async () => {
     await chooseBothPlaces();
 
