@@ -1,0 +1,10 @@
+<div class="problem" role="alert">
+  <p class="text">{{ message().text }}</p>
+  @if (message().details.length > 0) {
+    <ul class="details">
+      @for (detail of message().details; track $index) {
+        <li>{{ detail }}</li>
+      }
+    </ul>
+  }
+</div>

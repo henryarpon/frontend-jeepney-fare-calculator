@@ -81,6 +81,22 @@ export interface FareLine {
 
 export type { FareMatrixRow } from '../../../shared/models/fare-matrix-row.models';
 
+/**
+ * Why a calculation gave no fare. The app never makes up a fare instead.
+ * - `not-priced`: 422, the trip can't be priced. `detail` is the back end's message for the
+ *   commuter, saying why and what to try next (`null` if it sent none).
+ * - `invalid-request`: 400, with the back end's error messages.
+ * - `distance-unavailable`: 503, the routing provider is down or out of quota.
+ * - `offline`: the back end couldn't be reached at all, e.g. no mobile data.
+ * - `unexpected`: anything else.
+ */
+export type FareProblem =
+  | { kind: 'not-priced'; detail: string | null }
+  | { kind: 'invalid-request'; errors: string[] }
+  | { kind: 'distance-unavailable' }
+  | { kind: 'offline' }
+  | { kind: 'unexpected' };
+
 /** Body of a successful `POST /api/fares/calculate` (mirrors `FareBreakdownDto`). */
 export interface FareBreakdown {
   /** The Estimated Distance in km, to 1 decimal place. */

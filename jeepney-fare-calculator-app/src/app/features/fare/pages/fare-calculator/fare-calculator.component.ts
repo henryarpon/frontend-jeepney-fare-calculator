@@ -16,18 +16,20 @@ import { map, Subscription } from 'rxjs';
 
 import { VehicleType } from '../../../../shared/models/vehicle-type.models';
 import { FareBreakdownComponent } from '../../components/fare-breakdown/fare-breakdown.component';
+import { FareProblemComponent } from '../../components/fare-problem/fare-problem.component';
 import { PartySteppersComponent } from '../../components/party-steppers/party-steppers.component';
 import { PlaceFieldComponent } from '../../components/place-field/place-field.component';
 import { VehicleTypeSelectorComponent } from '../../components/vehicle-type-selector/vehicle-type-selector.component';
 import {
   CalculateFareRequest,
   FareBreakdown,
+  FareProblem,
   initialParty,
   PartyCounts,
   passengerTypeOptions,
   Place,
 } from '../../models/fare.models';
-import { FareService } from '../../services/fare.service';
+import { fareProblem, FareService } from '../../services/fare.service';
 import { PlaceSearchService } from '../../services/place-search.service';
 
 /** The last calculated fare, with the Vehicle Type and Party it was calculated for. */
@@ -44,7 +46,12 @@ interface FareResult {
  */
 @Component({
   selector: 'app-fare-calculator',
-  imports: [FareBreakdownComponent, PartySteppersComponent, PlaceFieldComponent, VehicleTypeSelectorComponent],
+  imports: [
+    FareBreakdownComponent,
+    FareProblemComponent,
+    PartySteppersComponent, PlaceFieldComponent,
+    VehicleTypeSelectorComponent,
+  ],
   templateUrl: './fare-calculator.component.html',
   styleUrl: './fare-calculator.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -78,7 +85,8 @@ export class FareCalculatorComponent {
 
   protected readonly result = signal<FareResult | null>(null);
   protected readonly calculating = signal(false);
-  protected readonly failed = signal(false);
+  /** Why the last calculation gave no fare, while the trip is still the one it was for. */
+  protected readonly failure = signal<FareProblem | null>(null);
 
   /** The request waiting for an answer, so a change of place can cancel it. */
   private pending: Subscription | null = null;
@@ -112,6 +120,24 @@ export class FareCalculatorComponent {
     );
   });
 
+  /**
+   * A fare shown for another Vehicle Type stays (marked out of date), but a message about
+   * why it couldn't be priced no longer applies.
+   */
+  protected setVehicleType(vehicleType: VehicleType): void {
+    this.form.controls.vehicleType.setValue(vehicleType);
+    this.failure.set(null);
+  }
+
+  /**
+   * A fare shown for another Party stays (marked out of date), but a message about
+   * why it couldn't be priced no longer applies.
+   */
+  protected setParty(party: PartyCounts): void {
+    this.form.controls.party.setValue(party);
+    this.failure.set(null);
+  }
+
   /** A different Origin is a different trip, so any fare shown no longer applies. */
   protected setOrigin(place: Place | null): void {
     this.form.controls.origin.setValue(place);
@@ -131,7 +157,7 @@ export class FareCalculatorComponent {
     }
     const party = this.party();
     this.calculating.set(true);
-    this.failed.set(false);
+    this.failure.set(null);
 
     this.pending = this.fareService
       .calculate(request)
@@ -142,11 +168,11 @@ export class FareCalculatorComponent {
           this.result.set({ breakdown, vehicleType: request.vehicleType, party });
           this.showResult();
         },
-        // The specific reasons a trip can't be priced are a later ticket (#8).
-        error: () => {
+        // No fare is shown rather than a stale one: the app never makes up a fare.
+        error: (error: unknown) => {
           this.calculating.set(false);
           this.result.set(null);
-          this.failed.set(true);
+          this.failure.set(fareProblem(error));
         },
       });
   }
@@ -155,7 +181,7 @@ export class FareCalculatorComponent {
     this.pending?.unsubscribe();
     this.pending = null;
     this.calculating.set(false);
-    this.failed.set(false);
+    this.failure.set(null);
     this.result.set(null);
   }
 

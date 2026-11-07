@@ -4,6 +4,14 @@ Angular (latest stable), TypeScript strict mode, standalone components.
 Classic file layout: every component has its own `.ts`, `.html`, and `.scss` file.
 The owner reads this code personally, so keep it easy to follow.
 
+## Product and design brief (read first)
+Before building or changing any UI, read `../PRODUCT.md`. It holds who the
+users are and the constraints (outdoor, one-handed use; budget phones on weak
+data; the fare is a guide, not a ruling). It also holds the approved design
+brief for the commuter fare flow: the Fare Matrix Placard direction, the screen
+layout, every state to design, and the open decisions you must not invent
+answers to (ask the owner instead).
+
 ## Commands
 Run from `frontend/`.
 - Install: `npm install`
