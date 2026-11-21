@@ -1,0 +1,499 @@
+<!doctype html>
+<!--
+  PROTOTYPE, throw away. Two variants of the commuter fare screen in the
+  "Modern Filipino transit" direction: A (Bold) and B (Calm).
+  Switch with the floating bar or ?variant=bold|calm&state=input|result&theme=light|dark.
+  All fares are SAMPLE data, not official LTFRB figures.
+-->
+<html lang="en" data-variant="bold" data-state="input" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Restyle prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..800&family=Plus+Jakarta+Sans:wght@400..800&display=swap" rel="stylesheet">
+<style>
+/* ---------- Tokens ---------- */
+:root {
+  --red: #d7263d; --red-deep: #a8162b;
+  --yellow: #ffd23f; --yellow-soft: #fff1b8;
+  --blue: #1746c9; --blue-deep: #0f348f;
+  --green: #1f8a52; --purple: #7a43b6;
+  --tap: 48px;
+}
+html[data-theme="light"] {
+  --page: #f4f1ec; --surface: #ffffff; --surface-2: #faf8f4; --ink: #17181b; --ink-2: #555a63;
+  --line: #e4dfd6; --field: #f6f3ee; --action: var(--blue); --on-action: #fff;
+  --hl: var(--yellow); --hl-ink: #17181b; --hl-soft: var(--yellow-soft);
+  --map-land: #ece8df; --map-road: #ffffff; --map-water: #cfe0f2; --map-dim: 1;
+  --shadow: 0 1px 2px rgba(23,24,27,.06), 0 4px 16px rgba(23,24,27,.06);
+  --mark-regular: #17181b;
+}
+html[data-theme="dark"] {
+  --page: #121316; --surface: #1c1e22; --surface-2: #23262b; --ink: #f2f0ec; --ink-2: #a9adb5;
+  --line: #2f3238; --field: #26292e; --action: #6f95ff; --on-action: #0b1430;
+  --hl: #ffd23f; --hl-ink: #17181b; --hl-soft: #3a3214;
+  --map-land: #ece8df; --map-road: #ffffff; --map-water: #cfe0f2; --map-dim: .72;
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 6px 20px rgba(0,0,0,.35);
+  --mark-regular: #f2f0ec;
+  --red: #ff5a6e; --blue: #6f95ff; --green: #4fc486; --purple: #b58cf0;
+}
+html[data-variant="bold"] { --font: 'Plus Jakarta Sans', system-ui, sans-serif; --radius: 20px; --radius-sm: 14px; }
+html[data-variant="calm"] { --font: 'Figtree', system-ui, sans-serif; --radius: 16px; --radius-sm: 12px; }
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--page); color: var(--ink); font: 16px/1.45 var(--font); -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; cursor: pointer; }
+.num { font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.v { display: none; }
+html[data-variant="bold"] .v-bold, html[data-variant="calm"] .v-calm { display: block; }
+html[data-state="input"] .when-result { display: none !important; }
+html[data-state="result"] .when-input { display: none !important; }
+.sample { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; background: var(--hl-soft); color: var(--ink); }
+html[data-theme="dark"] .sample { color: var(--hl); }
+
+/* ---------- Shared layout ---------- */
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px 140px; }
+.cols { display: grid; gap: 20px; }
+@media (min-width: 960px) {
+  .cols { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; gap: 28px; }
+  .result-col { position: sticky; top: 20px; }
+  .calc-bar { position: static !important; box-shadow: none !important; background: none !important; padding: 0 !important; border: 0 !important; }
+  .wrap { padding-bottom: 80px; }
+}
+.empty-desktop { display: none; }
+@media (min-width: 960px) { html[data-state="input"] .empty-desktop { display: flex; } }
+
+/* ========== VARIANT A: BOLD ========== */
+.b-bar { background: var(--red); color: #fff; }
+html[data-theme="dark"] .b-bar { background: #2a1418; border-bottom: 1px solid #4a2028; }
+.b-bar-in { max-width: 1180px; margin: 0 auto; padding: 14px 16px; display: flex; align-items: center; gap: 12px; }
+.b-bar-in .name { font-weight: 800; font-size: 18px; letter-spacing: -0.01em; flex: 1; }
+.b-bar-in .name small { display: block; font-weight: 500; font-size: 13px; opacity: .85; }
+.icon-btn { width: var(--tap); height: var(--tap); border-radius: 999px; border: 0; display: grid; place-items: center; background: rgba(255,255,255,.16); color: inherit; }
+.b-hero-strip { height: 6px; background: linear-gradient(90deg, var(--yellow) 0 33%, var(--blue) 33% 66%, var(--red-deep) 66%); }
+html[data-theme="dark"] .b-hero-strip { background: linear-gradient(90deg, #ffd23f 0 33%, #6f95ff 33% 66%, #ff5a6e 66%); }
+.b-title { margin: 22px 0 16px; }
+.b-title h1 { margin: 0; font-size: 28px; line-height: 1.15; font-weight: 800; letter-spacing: -0.02em; }
+.b-title p { margin: 6px 0 0; color: var(--ink-2); }
+
+.b-card { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px; }
+.b-step { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 15px; margin: 0 0 12px; }
+.b-step i { font-style: normal; width: 26px; height: 26px; border-radius: 999px; background: var(--ink); color: var(--surface); display: grid; place-items: center; font-size: 13px; }
+.stack > * + * { margin-top: 16px; }
+
+.b-vehicles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.b-vehicle { border: 2px solid var(--line); background: var(--surface); border-radius: var(--radius-sm); padding: 12px; text-align: left; min-height: 96px; display: flex; flex-direction: column; justify-content: space-between; gap: 6px; }
+.b-vehicle svg { width: 64px; height: 30px; }
+.b-vehicle b { font-size: 15px; }
+.b-vehicle[aria-pressed="true"] { border-color: var(--action); background: color-mix(in srgb, var(--action) 9%, var(--surface)); box-shadow: inset 0 0 0 1px var(--action); }
+
+.b-journey { position: relative; }
+.b-field { display: flex; gap: 12px; align-items: flex-start; background: var(--field); border-radius: var(--radius-sm); padding: 12px 14px; min-height: 60px; }
+.b-field + .b-field { margin-top: 8px; }
+.b-field .dot { flex: none; width: 14px; height: 14px; border-radius: 999px; margin-top: 4px; border: 3px solid var(--ink); background: var(--surface); }
+.b-field .dot.dest { background: var(--red); border-color: var(--red); border-radius: 4px; }
+.b-field label { display: block; font-size: 12px; font-weight: 700; color: var(--ink-2); text-transform: uppercase; letter-spacing: .05em; }
+.b-field .val { font-weight: 600; }
+.b-field .act { margin-left: auto; flex: none; border: 0; background: none; color: var(--action); font-weight: 700; font-size: 14px; min-height: 36px; }
+.b-journey .connector { position: absolute; left: 20px; top: 40px; height: 48px; border-left: 2px dashed var(--ink-2); opacity: .5; }
+
+.map { position: relative; border-radius: var(--radius-sm); overflow: hidden; height: 170px; margin-top: 12px; }
+.map svg { display: block; width: 100%; height: 100%; filter: brightness(var(--map-dim)); }
+.map .expand { position: absolute; right: 10px; bottom: 10px; border: 0; border-radius: 999px; padding: 8px 14px; font-weight: 700; font-size: 14px; background: var(--surface); color: var(--ink); box-shadow: var(--shadow); min-height: 40px; }
+
+.b-party { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.b-pt { border-radius: var(--radius-sm); background: var(--field); padding: 12px; position: relative; overflow: hidden; }
+.b-pt::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 5px; background: var(--mark); }
+.b-pt .who { font-weight: 700; font-size: 15px; }
+.b-pt .sub { font-size: 12px; color: var(--ink-2); }
+.b-pt .ctl { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+.b-pt .count { font-size: 26px; font-weight: 800; min-width: 2ch; text-align: center; }
+.round { width: 44px; height: 44px; border-radius: 999px; border: 0; background: var(--surface); box-shadow: var(--shadow); font-size: 22px; font-weight: 700; display: grid; place-items: center; }
+.round:disabled { opacity: .35; box-shadow: none; }
+.b-party-total { margin-top: 12px; font-size: 14px; color: var(--ink-2); }
+
+.calc-bar { position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: color-mix(in srgb, var(--page) 88%, transparent); backdrop-filter: blur(10px); border-top: 1px solid var(--line); z-index: 5; }
+.btn-primary { width: 100%; min-height: 56px; border: 0; border-radius: 999px; background: var(--action); color: var(--on-action); font-weight: 800; font-size: 17px; letter-spacing: .01em; }
+
+/* Bold result */
+.b-result { border-radius: var(--radius); overflow: hidden; background: var(--surface); box-shadow: var(--shadow); }
+.b-total { background: var(--hl); color: var(--hl-ink); padding: 20px 20px 18px; }
+.b-total .lbl { font-weight: 700; font-size: 15px; }
+.b-total .amt { font-size: 56px; line-height: 1; font-weight: 800; letter-spacing: -0.03em; margin: 6px 0 8px; }
+.b-total .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-size: 13px; font-weight: 700; padding: 5px 10px; border-radius: 999px; background: rgba(23,24,27,.1); }
+.b-body { padding: 18px 20px 20px; }
+.b-dist { display: flex; align-items: baseline; gap: 8px; font-size: 17px; font-weight: 700; }
+.b-dist span { color: var(--ink-2); font-weight: 500; font-size: 15px; }
+.b-lines { margin: 16px 0 0; padding: 0; list-style: none; }
+.b-lines li { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; padding: 12px 0 12px 14px; border-top: 1px solid var(--line); position: relative; }
+.b-lines li::before { content: ""; position: absolute; left: 0; top: 14px; bottom: 14px; width: 4px; border-radius: 4px; background: var(--mark); }
+.b-lines .who { font-weight: 700; }
+.b-lines .math { font-size: 14px; color: var(--ink-2); grid-column: 1; }
+.b-lines .sub { grid-row: 1 / span 2; grid-column: 2; align-self: center; font-weight: 800; font-size: 18px; }
+.b-lines .total-row { border-top: 2px solid var(--ink); font-weight: 800; }
+.b-lines .total-row::before { display: none; }
+.h-small { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-2); margin: 22px 0 8px; }
+.excerpt { width: 100%; border-collapse: separate; border-spacing: 0; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--line); }
+.excerpt th, .excerpt td { padding: 12px; text-align: right; }
+.excerpt th:first-child, .excerpt td:first-child { text-align: left; }
+.excerpt th { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-2); background: var(--surface-2); font-weight: 700; }
+.excerpt td { border-top: 1px solid var(--line); }
+.excerpt tr.hit td { background: var(--hl); color: var(--hl-ink); font-weight: 800; }
+.version { margin-top: 16px; font-size: 14px; color: var(--ink-2); display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; }
+.note { margin-top: 14px; font-size: 14px; color: var(--ink-2); }
+
+.empty { flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; min-height: 420px; border-radius: var(--radius); padding: 28px; }
+html[data-variant="bold"] .empty { background: var(--surface); box-shadow: var(--shadow); }
+html[data-variant="calm"] .empty { border: 2px dashed var(--line); }
+.empty h2 { margin: 6px 0 0; font-size: 22px; }
+.empty p { margin: 0; color: var(--ink-2); max-width: 32ch; }
+
+/* ========== VARIANT B: CALM ========== */
+.c-top { max-width: 1180px; margin: 0 auto; padding: 14px 16px 0; display: flex; align-items: center; gap: 10px; }
+.c-top .name { font-weight: 700; font-size: 17px; flex: 1; }
+.c-top .icon-btn { background: var(--surface); box-shadow: var(--shadow); }
+.c-title { margin: 18px 0 18px; }
+.c-title h1 { margin: 0; font-size: 26px; line-height: 1.2; font-weight: 700; letter-spacing: -0.015em; }
+.c-title h1 em { font-style: normal; background: linear-gradient(transparent 62%, var(--hl-soft) 62%); }
+html[data-theme="dark"] .c-title h1 em { background: none; color: var(--hl); }
+
+.c-sect { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; }
+.c-sect h2 { margin: 0 0 12px; font-size: 14px; font-weight: 700; color: var(--ink-2); }
+.seg { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); border-radius: 999px; padding: 4px; background: var(--field); }
+.seg button { min-height: 44px; border: 0; border-radius: 999px; background: none; font-weight: 600; }
+.seg button[aria-pressed="true"] { background: var(--surface); box-shadow: var(--shadow); font-weight: 700; }
+.seg button[aria-pressed="true"]::before { content: "✓ "; color: var(--action); }
+
+.c-route { display: grid; grid-template-columns: 22px 1fr; gap: 0 10px; }
+.c-route .rail { display: flex; flex-direction: column; align-items: center; padding: 22px 0; }
+.c-route .rail .a { width: 12px; height: 12px; border-radius: 999px; border: 3px solid var(--action); }
+.c-route .rail .line { flex: 1; width: 2px; background: var(--line); margin: 4px 0; }
+.c-route .rail .b { width: 12px; height: 12px; border-radius: 3px; background: var(--red); }
+.c-input { border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 8px 14px; min-height: 58px; background: var(--surface); }
+.c-input + .c-input { margin-top: 10px; }
+.c-input label { display: block; font-size: 12px; color: var(--ink-2); font-weight: 600; }
+.c-input .val { font-weight: 500; }
+.c-link { border: 0; background: none; color: var(--action); font-weight: 700; padding: 10px 0 0; min-height: 44px; display: inline-flex; align-items: center; gap: 6px; font-size: 15px; }
+.c-sect .map { height: 140px; margin-top: 8px; }
+
+.c-party { margin: 0; padding: 0; list-style: none; }
+.c-party li { display: flex; align-items: center; gap: 12px; padding: 10px 0; }
+.c-party li + li { border-top: 1px solid var(--line); }
+.c-party .mk { width: 10px; height: 10px; border-radius: 999px; background: var(--mark); flex: none; }
+.c-party .who { flex: 1; }
+.c-party .who b { display: block; font-weight: 600; }
+.c-party .who span { font-size: 13px; color: var(--ink-2); }
+.stepper { display: flex; align-items: center; border: 1px solid var(--line); border-radius: 999px; }
+.stepper button { width: 44px; height: 44px; border: 0; background: none; font-size: 20px; border-radius: 999px; }
+.stepper button:disabled { opacity: .3; }
+.stepper .count { min-width: 2.2ch; text-align: center; font-weight: 700; font-size: 17px; }
+
+.c-calc { display: flex; align-items: center; gap: 12px; }
+.c-calc .summary { flex: 1; font-size: 14px; color: var(--ink-2); line-height: 1.3; }
+.c-calc .summary b { display: block; color: var(--ink); font-size: 15px; }
+.c-calc .btn-primary { width: auto; padding: 0 28px; flex: none; }
+
+.c-result { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.c-result .stripe { height: 5px; background: linear-gradient(90deg, var(--red) 0 33%, var(--hl) 33% 66%, var(--blue) 66%); }
+.c-result .top { padding: 18px 18px 4px; }
+.c-result .lbl { color: var(--ink-2); font-size: 15px; }
+.c-result .amt { font-size: 52px; font-weight: 700; line-height: 1.05; letter-spacing: -0.03em; margin: 4px 0 6px; }
+.c-result .dist { display: inline-flex; gap: 8px; align-items: center; font-weight: 600; background: var(--field); border-radius: 999px; padding: 6px 12px; font-size: 15px; }
+.c-result .dist span { color: var(--ink-2); font-weight: 500; }
+.c-result .body { padding: 8px 18px 18px; }
+.c-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 15px; }
+.c-table td { padding: 12px 0; border-top: 1px solid var(--line); vertical-align: top; }
+.c-table td:last-child { text-align: right; font-weight: 700; }
+.c-table .who { display: flex; gap: 10px; align-items: baseline; }
+.c-table .who i { width: 10px; height: 10px; border-radius: 999px; background: var(--mark); flex: none; transform: translateY(-1px); }
+.c-table .math { display: block; font-size: 13px; color: var(--ink-2); margin-top: 2px; }
+.c-table tr.total td { border-top: 1px solid var(--ink); font-weight: 700; font-size: 17px; }
+.c-result .excerpt { border: 0; }
+.c-result .excerpt th { background: none; }
+.c-result .excerpt tr.hit td { background: var(--hl-soft); color: var(--ink); border-left: 0; }
+html[data-theme="dark"] .c-result .excerpt tr.hit td { background: var(--hl); color: var(--hl-ink); }
+.c-result .excerpt tr.hit td:first-child { box-shadow: inset 4px 0 0 var(--hl); }
+
+/* ---------- Prototype switcher (not part of the design) ---------- */
+.proto { position: fixed; left: 50%; transform: translateX(-50%); bottom: 92px; z-index: 50; display: flex; align-items: center; gap: 4px; background: #000; color: #fff; border-radius: 999px; padding: 4px; font: 600 13px/1 system-ui, sans-serif; box-shadow: 0 6px 24px rgba(0,0,0,.4); outline: 2px solid #ff00d4; }
+@media (min-width: 960px) { .proto { bottom: 20px; } }
+.proto button { border: 0; background: none; color: #fff; padding: 8px 10px; border-radius: 999px; font: inherit; }
+.proto button:hover { background: #333; }
+.proto .lbl { padding: 0 6px; min-width: 9ch; text-align: center; }
+.proto .sep { width: 1px; height: 18px; background: #444; }
+html.capture .proto { display: none; }
+html.capture .calc-bar { position: static; margin-top: 16px; padding: 0; border: 0; background: none; backdrop-filter: none; }
+html.capture .wrap { padding-bottom: 32px; }
+</style>
+</head>
+<body>
+
+<!-- ================= Shared SVG symbols ================= -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- Original side-view jeepney illustration -->
+    <symbol id="jeepney" viewBox="0 0 240 104">
+      <rect x="18" y="8" width="172" height="8" rx="3" fill="#c9ced6"/>
+      <rect x="30" y="4" width="148" height="5" rx="2" fill="#9aa1ab"/>
+      <path d="M18 16 H188 L198 38 H222 Q234 38 234 50 V80 H18 Z" fill="#d7263d"/>
+      <path d="M188 16 L198 38 H188 Z" fill="#a8162b"/>
+      <g fill="#bfe0ff"><rect x="26" y="22" width="20" height="20" rx="3"/><rect x="51" y="22" width="20" height="20" rx="3"/><rect x="76" y="22" width="20" height="20" rx="3"/><rect x="101" y="22" width="20" height="20" rx="3"/><rect x="126" y="22" width="20" height="20" rx="3"/><rect x="151" y="22" width="20" height="20" rx="3"/></g>
+      <path d="M176 22 H186 L193 38 V42 H176 Z" fill="#9fcff7"/>
+      <rect x="18" y="50" width="216" height="8" fill="#ffd23f"/>
+      <rect x="18" y="60" width="216" height="4" fill="#1746c9"/>
+      <rect x="226" y="70" width="12" height="10" rx="2" fill="#c9ced6"/>
+      <circle cx="228" cy="46" r="3.5" fill="#fff6c8"/>
+      <path d="M220 38 l6 -8 l2 8 z" fill="#c9ced6"/>
+      <rect x="10" y="72" width="12" height="6" rx="2" fill="#9aa1ab"/>
+      <circle cx="62" cy="82" r="15" fill="#22252a"/><circle cx="62" cy="82" r="6" fill="#c9ced6"/>
+      <circle cx="194" cy="82" r="15" fill="#22252a"/><circle cx="194" cy="82" r="6" fill="#c9ced6"/>
+    </symbol>
+    <symbol id="ico-trad" viewBox="0 0 64 30"><path d="M3 6 H48 L52 13 H58 Q61 13 61 16 V24 H3 Z" fill="currentColor"/><g fill="var(--surface)"><rect x="7" y="9" width="7" height="6" rx="1"/><rect x="17" y="9" width="7" height="6" rx="1"/><rect x="27" y="9" width="7" height="6" rx="1"/><rect x="37" y="9" width="7" height="6" rx="1"/></g><circle cx="15" cy="25" r="4" fill="currentColor"/><circle cx="50" cy="25" r="4" fill="currentColor"/></symbol>
+    <symbol id="ico-modern" viewBox="0 0 64 30"><rect x="3" y="3" width="58" height="21" rx="5" fill="currentColor"/><g fill="var(--surface)"><rect x="8" y="7" width="10" height="8" rx="1.5"/><rect x="21" y="7" width="10" height="8" rx="1.5"/><rect x="34" y="7" width="10" height="8" rx="1.5"/><rect x="47" y="7" width="10" height="11" rx="1.5"/></g><circle cx="15" cy="25" r="4" fill="currentColor"/><circle cx="49" cy="25" r="4" fill="currentColor"/></symbol>
+    <symbol id="ico-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5" fill="currentColor"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></g></symbol>
+    <symbol id="ico-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" fill="currentColor"/></symbol>
+    <symbol id="ico-loc" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.5" fill="currentColor"/><circle cx="12" cy="12" r="7.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="map" viewBox="0 0 400 170" preserveAspectRatio="xMidYMid slice">
+      <rect width="400" height="170" fill="var(--map-land)"/>
+      <path d="M300 0 Q330 60 400 70 V0 Z" fill="var(--map-water)"/>
+      <g stroke="var(--map-road)" stroke-width="9" fill="none" stroke-linecap="round"><path d="M-10 120 L410 95"/><path d="M90 -10 L120 180"/><path d="M230 -10 L260 180"/><path d="M-10 40 L300 30"/></g>
+      <g stroke="var(--map-road)" stroke-width="4" fill="none"><path d="M0 75 L400 60"/><path d="M170 0 L190 170"/><path d="M330 80 L350 170"/><path d="M40 0 L60 170"/></g>
+      <path d="M70 128 L115 120 L112 72 L185 64 L250 58 L262 96 L320 92" stroke="#1746c9" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="70" cy="128" r="9" fill="#fff" stroke="#17181b" stroke-width="4"/>
+      <rect x="311" y="83" width="18" height="18" rx="4" fill="#d7263d" stroke="#fff" stroke-width="3"/>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- ======================================================= -->
+<!-- VARIANT A: BOLD                                          -->
+<!-- ======================================================= -->
+<div class="v v-bold">
+  <header class="b-bar">
+    <div class="b-bar-in">
+      <svg width="52" height="24" aria-hidden="true"><use href="#jeepney"/></svg>
+      <div class="name">Jeepney Fare Calculator<small>Know your fare before you ride</small></div>
+      <button class="icon-btn theme-toggle" aria-label="Switch to dark theme"><svg width="22" height="22"><use class="ti" href="#ico-moon"/></svg></button>
+    </div>
+  </header>
+  <div class="b-hero-strip"></div>
+
+  <main class="wrap">
+    <div class="b-title">
+      <h1>How much for this trip?</h1>
+      <p>Pick your jeepney, where you're going, and who's riding.</p>
+    </div>
+
+    <div class="cols">
+      <section class="stack">
+        <div class="b-card">
+          <p class="b-step"><i>1</i>Vehicle Type</p>
+          <div class="b-vehicles">
+            <button class="b-vehicle" aria-pressed="true"><svg><use href="#ico-trad"/></svg><b>Traditional Jeepney</b></button>
+            <button class="b-vehicle" aria-pressed="false"><svg><use href="#ico-modern"/></svg><b>Modern Jeepney</b></button>
+          </div>
+        </div>
+
+        <div class="b-card">
+          <p class="b-step"><i>2</i>Trip</p>
+          <div class="b-journey">
+            <span class="connector"></span>
+            <div class="b-field"><span class="dot"></span><div><label>Origin</label><div class="val">SM City Cebu, North Reclamation Area, Cebu City</div></div><button class="act" aria-label="Use my location"><svg width="20" height="20"><use href="#ico-loc"/></svg></button></div>
+            <div class="b-field"><span class="dot dest"></span><div><label>Destination</label><div class="val">Colon Street, Cebu City</div></div></div>
+          </div>
+          <div class="map"><svg><use href="#map"/></svg><button class="expand">Expand map</button></div>
+        </div>
+
+        <div class="b-card">
+          <p class="b-step"><i>3</i>Party</p>
+          <div class="b-party">
+            <div class="b-pt" style="--mark: var(--mark-regular)"><div class="who">Regular</div><div class="sub">Regular Fare</div><div class="ctl"><button class="round">−</button><span class="count num">2</span><button class="round">+</button></div></div>
+            <div class="b-pt" style="--mark: var(--blue)"><div class="who">Student</div><div class="sub">Discounted Fare</div><div class="ctl"><button class="round">−</button><span class="count num">1</span><button class="round">+</button></div></div>
+            <div class="b-pt" style="--mark: var(--green)"><div class="who">Senior Citizen</div><div class="sub">Discounted Fare</div><div class="ctl"><button class="round">−</button><span class="count num">1</span><button class="round">+</button></div></div>
+            <div class="b-pt" style="--mark: var(--purple)"><div class="who">PWD</div><div class="sub">Discounted Fare</div><div class="ctl"><button class="round" disabled>−</button><span class="count num">0</span><button class="round">+</button></div></div>
+          </div>
+          <p class="b-party-total">Party of 4 · up to 30</p>
+        </div>
+
+        <div class="calc-bar"><button class="btn-primary">Calculate fare</button></div>
+      </section>
+
+      <aside class="result-col">
+        <div class="empty empty-desktop">
+          <svg width="220" height="96" aria-hidden="true"><use href="#jeepney"/></svg>
+          <h2>Your fare shows here</h2>
+          <p>Fill in the trip and Party, then tap Calculate fare.</p>
+        </div>
+
+        <div class="b-result when-result">
+          <div class="b-total">
+            <div class="lbl">About what your Party should pay</div>
+            <div class="amt num">₱52.20</div>
+            <div class="chips"><span class="chip">Traditional Jeepney</span><span class="chip">Party of 4</span><span class="chip">Sample fares</span></div>
+          </div>
+          <div class="b-body">
+            <div class="b-dist num">4.3 km <span>· charged as 5 km</span></div>
+            <ul class="b-lines">
+              <li style="--mark: var(--mark-regular)"><span class="who">Regular × 2</span><span class="math num">₱14.50 Regular Fare</span><span class="sub num">₱29.00</span></li>
+              <li style="--mark: var(--blue)"><span class="who">Student × 1</span><span class="math num">₱14.50 − ₱2.90 Discount = ₱11.60</span><span class="sub num">₱11.60</span></li>
+              <li style="--mark: var(--green)"><span class="who">Senior Citizen × 1</span><span class="math num">₱14.50 − ₱2.90 Discount = ₱11.60</span><span class="sub num">₱11.60</span></li>
+              <li class="total-row"><span class="who">Total Fare</span><span class="math"></span><span class="sub num">₱52.20</span></li>
+            </ul>
+
+            <p class="h-small">From the fare matrix</p>
+            <table class="excerpt num">
+              <thead><tr><th>Km</th><th>Regular</th><th>Discounted</th></tr></thead>
+              <tbody>
+                <tr><td>4</td><td>₱13.00</td><td>₱10.40</td></tr>
+                <tr class="hit"><td>5 ← your trip</td><td>₱14.50</td><td>₱11.60</td></tr>
+                <tr><td>6</td><td>₱16.00</td><td>₱12.80</td></tr>
+              </tbody>
+            </table>
+            <div class="version"><span class="sample">Sample data</span><span>Fare Matrix Version uploaded 6 Nov 2026</span></div>
+            <p class="note">A guide only. The road distance is estimated, so your actual fare may differ a little.</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+</div>
+
+<!-- ======================================================= -->
+<!-- VARIANT B: CALM                                          -->
+<!-- ======================================================= -->
+<div class="v v-calm">
+  <header class="c-top">
+    <svg width="44" height="20" aria-hidden="true"><use href="#jeepney"/></svg>
+    <div class="name">Jeepney Fare Calculator</div>
+    <button class="icon-btn theme-toggle" aria-label="Switch to dark theme"><svg width="20" height="20"><use class="ti" href="#ico-moon"/></svg></button>
+  </header>
+
+  <main class="wrap">
+    <div class="c-title"><h1>Know your <em>fare</em> before you ride.</h1></div>
+
+    <div class="cols">
+      <section class="stack">
+        <div class="c-sect">
+          <h2>Vehicle Type</h2>
+          <div class="seg"><button aria-pressed="true">Traditional</button><button aria-pressed="false">Modern</button></div>
+        </div>
+
+        <div class="c-sect">
+          <h2>Trip</h2>
+          <div class="c-route">
+            <div class="rail"><span class="a"></span><span class="line"></span><span class="b"></span></div>
+            <div>
+              <div class="c-input"><label>Origin</label><div class="val">SM City Cebu, North Reclamation Area, Cebu City</div></div>
+              <div class="c-input"><label>Destination</label><div class="val">Colon Street, Cebu City</div></div>
+            </div>
+          </div>
+          <button class="c-link"><svg width="18" height="18"><use href="#ico-loc"/></svg>Use my location for Origin</button>
+          <div class="map"><svg><use href="#map"/></svg><button class="expand">Expand map</button></div>
+        </div>
+
+        <div class="c-sect">
+          <h2>Party</h2>
+          <ul class="c-party">
+            <li style="--mark: var(--mark-regular)"><span class="mk"></span><span class="who"><b>Regular</b><span>Regular Fare</span></span><span class="stepper"><button>−</button><span class="count num">2</span><button>+</button></span></li>
+            <li style="--mark: var(--blue)"><span class="mk"></span><span class="who"><b>Student</b><span>Discounted Fare</span></span><span class="stepper"><button>−</button><span class="count num">1</span><button>+</button></span></li>
+            <li style="--mark: var(--green)"><span class="mk"></span><span class="who"><b>Senior Citizen</b><span>Discounted Fare</span></span><span class="stepper"><button>−</button><span class="count num">1</span><button>+</button></span></li>
+            <li style="--mark: var(--purple)"><span class="mk"></span><span class="who"><b>PWD</b><span>Discounted Fare</span></span><span class="stepper"><button disabled>−</button><span class="count num">0</span><button>+</button></span></li>
+          </ul>
+        </div>
+
+        <div class="calc-bar"><div class="c-calc"><div class="summary"><b>Party of 4</b>Traditional Jeepney</div><button class="btn-primary">Calculate</button></div></div>
+      </section>
+
+      <aside class="result-col">
+        <div class="empty empty-desktop">
+          <svg width="180" height="78" aria-hidden="true"><use href="#jeepney"/></svg>
+          <h2>No fare yet</h2>
+          <p>Your Total Fare and how it was reached will show here.</p>
+        </div>
+
+        <div class="c-result when-result">
+          <div class="stripe"></div>
+          <div class="top">
+            <div class="lbl">About what your Party of 4 should pay</div>
+            <div class="amt num">₱52.20</div>
+            <div class="dist num">4.3 km <span>· charged as 5 km</span></div>
+          </div>
+          <div class="body">
+            <table class="c-table num">
+              <tr style="--mark: var(--mark-regular)"><td><span class="who"><i></i><span>Regular × 2<span class="math">₱14.50 each</span></span></span></td><td>₱29.00</td></tr>
+              <tr style="--mark: var(--blue)"><td><span class="who"><i></i><span>Student × 1<span class="math">₱14.50 − ₱2.90 Discount = ₱11.60 each</span></span></span></td><td>₱11.60</td></tr>
+              <tr style="--mark: var(--green)"><td><span class="who"><i></i><span>Senior Citizen × 1<span class="math">₱14.50 − ₱2.90 Discount = ₱11.60 each</span></span></span></td><td>₱11.60</td></tr>
+              <tr class="total"><td>Total Fare</td><td>₱52.20</td></tr>
+            </table>
+
+            <p class="h-small">Fare matrix · Traditional Jeepney</p>
+            <table class="excerpt num">
+              <thead><tr><th>Km</th><th>Regular</th><th>Discounted</th></tr></thead>
+              <tbody>
+                <tr><td>4</td><td>₱13.00</td><td>₱10.40</td></tr>
+                <tr class="hit"><td>5</td><td>₱14.50</td><td>₱11.60</td></tr>
+                <tr><td>6</td><td>₱16.00</td><td>₱12.80</td></tr>
+              </tbody>
+            </table>
+            <div class="version"><span class="sample">Sample data</span><span>Uploaded 6 Nov 2026</span></div>
+            <p class="note">A guide, based on an estimated road distance.</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+</div>
+
+<!-- Prototype switcher -->
+<div class="proto" role="toolbar" aria-label="Prototype controls">
+  <button data-cycle="-1" aria-label="Previous variant">◀</button>
+  <span class="lbl" id="p-variant"></span>
+  <button data-cycle="1" aria-label="Next variant">▶</button>
+  <span class="sep"></span>
+  <button id="p-state"></button>
+  <span class="sep"></span>
+  <button id="p-theme"></button>
+</div>
+
+<script>
+  const root = document.documentElement;
+  const params = new URLSearchParams(location.search);
+  const variants = ['bold', 'calm'];
+  const names = { bold: 'A · Bold', calm: 'B · Calm' };
+  ['variant', 'state', 'theme'].forEach(k => { if (params.get(k)) root.dataset[k] = params.get(k); });
+  if (params.get('capture')) root.classList.add('capture');
+
+  function sync() {
+    document.getElementById('p-variant').textContent = names[root.dataset.variant];
+    document.getElementById('p-state').textContent = root.dataset.state === 'input' ? 'Show result' : 'Show input';
+    document.getElementById('p-theme').textContent = root.dataset.theme === 'light' ? 'Dark' : 'Light';
+    const dark = root.dataset.theme === 'dark';
+    document.querySelectorAll('.theme-toggle').forEach(b => b.setAttribute('aria-label', dark ? 'Switch to light theme' : 'Switch to dark theme'));
+    document.querySelectorAll('.ti').forEach(u => u.setAttribute('href', dark ? '#ico-sun' : '#ico-moon'));
+    const p = new URLSearchParams({ variant: root.dataset.variant, state: root.dataset.state, theme: root.dataset.theme });
+    try { history.replaceState(null, '', '?' + p); } catch (e) {}
+  }
+  function cycle(d) { const i = variants.indexOf(root.dataset.variant); root.dataset.variant = variants[(i + d + variants.length) % variants.length]; sync(); }
+  function toggleTheme() { root.dataset.theme = root.dataset.theme === 'light' ? 'dark' : 'light'; sync(); }
+
+  document.querySelectorAll('[data-cycle]').forEach(b => b.onclick = () => cycle(+b.dataset.cycle));
+  document.getElementById('p-state').onclick = () => { root.dataset.state = root.dataset.state === 'input' ? 'result' : 'input'; sync(); };
+  document.getElementById('p-theme').onclick = toggleTheme;
+  document.querySelectorAll('.theme-toggle').forEach(b => b.onclick = toggleTheme);
+  document.querySelectorAll('.b-vehicle, .seg button').forEach(b => b.onclick = () => {
+    b.parentElement.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  });
+  document.querySelectorAll('.btn-primary').forEach(b => b.onclick = () => { root.dataset.state = 'result'; sync(); });
+  addEventListener('keydown', e => {
+    if (e.target.closest('input, textarea, [contenteditable]')) return;
+    if (e.key === 'ArrowLeft') cycle(-1);
+    if (e.key === 'ArrowRight') cycle(1);
+  });
+  sync();
+</script>
+</body>
+</html>
