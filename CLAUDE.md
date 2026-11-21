@@ -8,9 +8,11 @@ The owner reads this code personally, so keep it easy to follow.
 Before building or changing any UI, read `../PRODUCT.md`. It holds who the
 users are and the constraints (outdoor, one-handed use; budget phones on weak
 data; the fare is a guide, not a ruling). It also holds the approved design
-brief for the commuter fare flow: the Fare Matrix Placard direction, the screen
-layout, every state to design, and the open decisions you must not invent
-answers to (ask the owner instead).
+brief for the whole front end: the "Modern Filipino Transit" direction (light
+and dark themes, Angular Material restyled with our tokens, Figtree), the screen
+layout, every state to design, the admin screens, and the open decisions you
+must not invent answers to (ask the owner instead). UI library and theming
+rules: `../docs/adr/0002-angular-material-and-theming.md`.
 
 ## Commands
 Run from `frontend/`.
@@ -61,7 +63,8 @@ src/app/
 - Forms: reactive forms with typed `FormGroup`s.
 - Avoid manual `subscribe()` in components. Prefer the `async` pipe, `toSignal`, or `takeUntilDestroyed`.
 - Naming: `kebab-case` files, `PascalCase` classes, `camelCase` members, `Component`/`Service` suffixes, selectors prefixed `app-`.
-- Styles: SCSS. Component-scoped styles in the component's `.scss`. Global styles and design tokens (colors, spacing) go in `src/styles.scss`.
+- Styles: SCSS. Component-scoped styles in the component's `.scss`. Global styles and design tokens (colors, spacing) go in `src/styles.scss`, with a light and a dark value for every colour. Component SCSS uses tokens only, never hardcoded colours.
+- UI components: Angular Material (M3), imported per component. Restyle through our tokens rather than overriding Material's internals.
 - API base URL comes from environment config, never hardcoded.
 
 ## Gotchas

@@ -3,23 +3,23 @@
   min-height: 100vh;
 }
 
-/* The red band across the top of the posted fare guide. */
-.title-band {
-  padding: var(--space-4);
-  background: var(--color-title-band);
-  color: var(--color-on-title-band);
+.intro {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: var(--space-2) var(--space-4) 0;
 }
 
 .title {
   margin: 0;
-  font-size: 1.25rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  font-size: 1.625rem;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.015em;
 }
 
 .tagline {
   margin: var(--space-1) 0 0;
+  color: var(--color-ink-soft);
 }
 
 .layout {
@@ -179,10 +179,6 @@
 
 /* Desktop: inputs on the left, the result stays in view on the right. */
 @media (min-width: 60rem) {
-  .title-band {
-    padding-inline: max(var(--space-4), calc((100% - 72rem) / 2 + var(--space-4)));
-  }
-
   .layout {
     grid-template-columns: minmax(0, 26rem) minmax(0, 1fr);
     align-items: start;

@@ -1,0 +1,43 @@
+:host {
+  display: inline-block;
+  flex: none;
+  line-height: 0;
+}
+
+svg {
+  width: 100%;
+  height: auto;
+}
+
+.body {
+  fill: var(--color-jeepney-red);
+}
+
+.body-shade {
+  fill: var(--color-jeepney-red);
+  filter: brightness(0.8);
+}
+
+.glass {
+  fill: var(--color-jeepney-glass);
+}
+
+.stripe-yellow {
+  fill: var(--color-jeepney-yellow);
+}
+
+.stripe-blue {
+  fill: var(--color-jeepney-blue);
+}
+
+.chrome {
+  fill: var(--color-jeepney-chrome);
+}
+
+.chrome-dark {
+  fill: var(--color-jeepney-chrome-dark);
+}
+
+.tyre {
+  fill: var(--color-jeepney-tyre);
+}
