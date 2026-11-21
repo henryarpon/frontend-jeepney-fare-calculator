@@ -117,6 +117,7 @@ export type { FareMatrixRow } from '../../../shared/models/fare-matrix-row.model
  *   commuter, saying why and what to try next (`null` if it sent none).
  * - `invalid-request`: 400, with the back end's error messages.
  * - `distance-unavailable`: 503, the routing provider is down or out of quota.
+ * - `too-many-requests`: 429, this device calculated too often in the last minute.
  * - `offline`: the back end couldn't be reached at all, e.g. no mobile data.
  * - `unexpected`: anything else.
  */
@@ -124,6 +125,7 @@ export type FareProblem =
   | { kind: 'not-priced'; detail: string | null }
   | { kind: 'invalid-request'; errors: string[] }
   | { kind: 'distance-unavailable' }
+  | { kind: 'too-many-requests' }
   | { kind: 'offline' }
   | { kind: 'unexpected' };
 
