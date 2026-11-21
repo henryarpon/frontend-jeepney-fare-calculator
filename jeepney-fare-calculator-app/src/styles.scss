@@ -1,41 +1,84 @@
+@use '@angular/material' as mat;
+
 /*
  * Global styles and design tokens.
  *
- * The commuter screen follows the "Fare Matrix Placard" direction (PRODUCT.md):
- * the laminated LTFRB fare guide posted inside jeepneys. White sheet surfaces,
- * ink-black ruled lines, a red title band, highlighter yellow, and Philippine
- * blue for actions. Light theme only: it is used outdoors in sunlight.
+ * Direction: "Modern Filipino Transit" (PRODUCT.md, ADR 0002). Calm warm-neutral
+ * surfaces and bordered cards. Jeepney red, yellow and blue are accents only.
+ *
+ * Light and dark: every colour is a light-dark() pair. `color-scheme` picks the
+ * side. It follows the system until ThemeService (core/theme) sets
+ * `data-theme` on <html>. An inline script in index.html sets it before the
+ * first paint, so there is no flash of the wrong theme.
  */
-:root {
-  // Surfaces and ink
-  --color-page: #eceef0;
-  --color-sheet: #ffffff;
-  --color-ink: #15171a;
-  --color-ink-soft: #464b51;
-  --color-rule: #15171a;
-  --color-rule-soft: #c8ccd1;
 
-  // Placard accents
-  --color-title-band: #c8102e;
-  --color-on-title-band: #ffffff;
-  --color-highlighter: #ffe45c;
-  --color-action: #0038a8;
-  --color-action-pressed: #002a7f;
-  --color-on-action: #ffffff;
-  --color-disabled: #8d939a;
-  --color-error: #b3261e;
+/* Figtree, self-hosted (no third-party font request). The browser downloads the
+   Latin Extended file only when a character from it is on screen, such as ₱. */
+@font-face {
+  font-family: 'Figtree';
+  font-style: normal;
+  font-weight: 300 900;
+  font-display: swap;
+  src: url('/fonts/figtree-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304,
+    U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Figtree';
+  font-style: normal;
+  font-weight: 300 900;
+  font-display: swap;
+  src: url('/fonts/figtree-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308,
+    U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113,
+    U+2C60-2C7F, U+A720-A7FF;
+}
+
+:root {
+  color-scheme: light dark;
+
+  // Surfaces and ink
+  --color-page: light-dark(#f4f1ec, #121316);
+  --color-surface: light-dark(#ffffff, #1c1e22);
+  --color-field: light-dark(#f6f3ee, #26292e);
+  --color-border: light-dark(#e4dfd6, #33363c);
+  --color-border-strong: light-dark(#17181b, #f2f0ec);
+  --color-ink: light-dark(#17181b, #f2f0ec);
+  --color-ink-soft: light-dark(#555a63, #a9adb5);
+
+  // Actions and states
+  --color-action: light-dark(#1746c9, #8aa8ff);
+  --color-action-pressed: light-dark(#0f348f, #a9c0ff);
+  --color-on-action: light-dark(#ffffff, #0b1430);
+  --color-disabled: light-dark(#8d939a, #6b7079);
+  --color-error: light-dark(#b3261e, #ff8a80);
+
+  // Jeepney accents
+  --color-jeepney-red: light-dark(#d7263d, #ff5a6e);
+  --color-jeepney-yellow: #ffd23f;
+  --color-jeepney-blue: light-dark(#1746c9, #6f95ff);
+
+  // The highlighted (charged) matrix row. Ink stays readable on it in both themes.
+  --color-highlight: light-dark(#fff1b8, #4d3f0c);
+
+  // The jeepney illustration's fixed parts (body colours use the accents above).
+  --color-jeepney-chrome: #c9ced6;
+  --color-jeepney-chrome-dark: #9aa1ab;
+  --color-jeepney-glass: #bfe0ff;
+  --color-jeepney-tyre: #22252a;
 
   // One fixed colour mark per Passenger Type, used in its stepper and breakdown row.
-  --mark-regular: #15171a;
-  --mark-student: #0038a8;
-  --mark-senior-citizen: #1e7a46;
-  --mark-pwd: #7b3fa0;
+  --mark-regular: light-dark(#17181b, #f2f0ec);
+  --mark-student: light-dark(#1746c9, #8aa8ff);
+  --mark-senior-citizen: light-dark(#1f8a52, #4fc486);
+  --mark-pwd: light-dark(#7a43b6, #b58cf0);
 
-  // Type. The placard face for amounts is a condensed system font (no download on
-  // weak data, decided 2026-11-07); it looks a little different from phone to phone.
-  --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-placard: 'Roboto Condensed', 'Arial Narrow', 'Helvetica Neue Condensed', 'sans-serif-condensed',
-    'Liberation Sans Narrow', sans-serif;
+  // Map tiles have no dark variant, so they are only dimmed in dark mode.
+  --map-tile-filter: none;
+
+  // Type
+  --font-body: 'Figtree', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 
   // Spacing and shape
   --space-1: 4px;
@@ -44,9 +87,71 @@
   --space-4: 16px;
   --space-5: 24px;
   --space-6: 32px;
-  --radius: 10px;
+  --radius: 16px;
+  --radius-field: 12px;
+  --radius-pill: 999px;
+  --shadow: 0 1px 2px light-dark(rgb(23 24 27 / 6%), rgb(0 0 0 / 40%)),
+    0 4px 16px light-dark(rgb(23 24 27 / 6%), rgb(0 0 0 / 35%));
   --tap-target: 48px;
   --focus-ring: 3px solid var(--color-action);
+
+  // Placard-era names still used by the commuter components. Removed when the
+  // commuter flow is restyled (#21, second PR).
+  --color-sheet: var(--color-surface);
+  --color-rule: var(--color-border-strong);
+  --color-rule-soft: var(--color-border);
+  --color-title-band: var(--color-jeepney-red);
+  --color-on-title-band: #ffffff;
+  --color-highlighter: var(--color-highlight);
+  --font-placard: var(--font-body);
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --map-tile-filter: brightness(0.75) contrast(1.05);
+}
+
+/* No data-theme yet (scripts off): follow the system for the non-colour tokens too. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --map-tile-filter: brightness(0.75) contrast(1.05);
+  }
+}
+
+/* Angular Material (M3), mapped onto our tokens so its components match the app. */
+html {
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$blue-palette,
+        tertiary: mat.$red-palette,
+      ),
+      typography: (
+        plain-family: var(--font-body),
+        brand-family: var(--font-body),
+      ),
+      density: 0,
+    ),
+    $overrides: (
+      primary: var(--color-action),
+      on-primary: var(--color-on-action),
+      background: var(--color-page),
+      on-background: var(--color-ink),
+      surface: var(--color-surface),
+      on-surface: var(--color-ink),
+      on-surface-variant: var(--color-ink-soft),
+      surface-container: var(--color-surface),
+      surface-container-high: var(--color-field),
+      surface-container-highest: var(--color-field),
+      outline: var(--color-border-strong),
+      outline-variant: var(--color-border),
+      error: var(--color-error),
+    )
+  );
 }
 
 *,
@@ -64,6 +169,7 @@ body {
   background: var(--color-page);
   color: var(--color-ink);
   font: 16px/1.45 var(--font-body);
+  -webkit-font-smoothing: antialiased;
 }
 
 button,
@@ -77,11 +183,15 @@ input {
   outline-offset: 2px;
 }
 
-/* Amounts in the placard face, with figures that line up in columns. */
+/* Amounts and distances: figures that line up in columns. */
 .placard-figures {
-  font-family: var(--font-placard);
-  font-stretch: condensed;
+  font-family: var(--font-body);
   font-variant-numeric: tabular-nums;
+}
+
+/* Leaflet builds the map's DOM outside Angular, so the dark-mode dimming lives here. */
+.leaflet-tile-pane {
+  filter: var(--map-tile-filter);
 }
 
 .visually-hidden {
