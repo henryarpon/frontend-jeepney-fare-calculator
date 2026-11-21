@@ -1,0 +1,26 @@
+<div class="trip-map-frame" [class.expanded]="expanded()">
+  <div
+    #mapContainer
+    class="trip-map-canvas"
+    role="region"
+    aria-label="Map of the Origin and Destination"
+  ></div>
+</div>
+
+<div class="trip-map-footer">
+  <p class="trip-map-hint" aria-live="polite">
+    @if (tilesFailed()) {
+      The map didn't load fully. You can still search for both places.
+    } @else {
+      {{ hint() }}
+    }
+  </p>
+  <button
+    type="button"
+    class="trip-map-size"
+    [attr.aria-expanded]="expanded()"
+    (click)="toggleSize()"
+  >
+    {{ expanded() ? 'Smaller map' : 'Bigger map' }}
+  </button>
+</div>

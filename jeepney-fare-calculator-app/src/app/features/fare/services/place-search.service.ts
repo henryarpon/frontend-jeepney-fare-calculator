@@ -1,10 +1,18 @@
 import { HttpClient } from '@angular/common/http';
 import { DestroyRef, inject, Injectable, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { catchError, concat, map, Observable, of, Subject, switchMap, timer } from 'rxjs';
+import { catchError, concat, EMPTY, map, Observable, of, Subject, switchMap, tap, timer } from 'rxjs';
 
 import { environment } from '../../../../environments/environment';
-import { minQueryLength, Place, PlaceSearch, PlaceSearchStatus } from '../models/fare.models';
+import {
+  LatLng,
+  minQueryLength,
+  PinLookup,
+  pinnedPlace,
+  Place,
+  PlaceSearch,
+  PlaceSearchStatus,
+} from '../models/fare.models';
 
 /** How long typing must pause before a search is sent. */
 const searchPauseMs = 300;
@@ -12,7 +20,7 @@ const searchPauseMs = 300;
 /** A rough box around the Philippines (min lng, min lat, max lng, max lat), so suggestions stay in the country. */
 const philippinesBbox = '116.9,4.5,126.7,21.2';
 
-/** Finds places in the Philippines through Photon, straight from the browser. */
+/** Finds and names places in the Philippines through Photon, straight from the browser. */
 @Injectable({ providedIn: 'root' })
 export class PlaceSearchService {
   private readonly http = inject(HttpClient);
@@ -24,6 +32,53 @@ export class PlaceSearchService {
         params: { q: text, limit: 5, lang: 'en', bbox: philippinesBbox },
       })
       .pipe(map((response) => response.features.filter(isInThePhilippines).map(toPlace)));
+  }
+
+  /**
+   * Names a pinned spot with the nearest place Photon knows. The place keeps the
+   * pinned coordinates, not the named place's, so the trip is priced from where
+   * the pin is. Never fails: without a name, the spot is named by its coordinates.
+   */
+  reverse(point: LatLng): Observable<Place> {
+    const unnamed = pinnedPlace(point);
+    return this.http
+      .get<PhotonResponse>(`${environment.photonBaseUrl}/reverse`, {
+        params: { lat: point.lat, lon: point.lng, lang: 'en' },
+      })
+      .pipe(
+        map((response) => {
+          const named = response.features.find(isInThePhilippines);
+          return named ? { ...unnamed, label: toPlace(named).label } : unnamed;
+        }),
+        catchError(() => of(unnamed)),
+      );
+  }
+
+  /**
+   * Starts naming pinned spots for one end of the Trip. `onNamed` gets each
+   * pin's name once the lookup is done. A new pin, or `cancel()`, drops the
+   * lookup still running for an older one. It stops when `destroyRef` is destroyed.
+   */
+  createPinLookup(destroyRef: DestroyRef, onNamed: (place: Place) => void): PinLookup {
+    const lookingUp = signal(false);
+    const pins = new Subject<LatLng | null>();
+
+    pins
+      .pipe(
+        tap((point) => lookingUp.set(point !== null)),
+        switchMap((point) => (point ? this.reverse(point) : EMPTY)),
+        takeUntilDestroyed(destroyRef),
+      )
+      .subscribe((place) => {
+        lookingUp.set(false);
+        onNamed(place);
+      });
+
+    return {
+      lookingUp: lookingUp.asReadonly(),
+      pin: (point) => pins.next(point),
+      cancel: () => pins.next(null),
+    };
   }
 
   /**

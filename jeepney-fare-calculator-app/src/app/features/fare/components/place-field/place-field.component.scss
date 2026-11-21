@@ -26,6 +26,16 @@
   overflow-wrap: anywhere;
 }
 
+.lookup {
+  display: block;
+  color: var(--color-ink-soft);
+  font-size: 0.9375rem;
+
+  &:empty {
+    display: none;
+  }
+}
+
 .change {
   flex: none;
   min-height: var(--tap-target);

@@ -19,6 +19,8 @@ const mixedParty: FareBreakdown = {
     { distanceKm: 5, regularFare: 14.75, discountedFare: 11.8 },
     { distanceKm: 6, regularFare: 16.5, discountedFare: 13.2 },
   ],
+  // The breakdown doesn't show the route line; the map does.
+  routeLine: [],
 };
 
 describe('FareBreakdownComponent', () => {

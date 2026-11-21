@@ -19,7 +19,8 @@ import { minQueryLength, Place, PlaceSearchStatus } from '../../models/fare.mode
 /**
  * One end of the Trip (Origin or Destination): a search box with suggestions
  * while no place is chosen, and the chosen place's full name once one is.
- * Long names wrap and are never cut off.
+ * Long names wrap and are never cut off. Content placed inside it shows under
+ * the search box, for other ways to set the place.
  */
 @Component({
   selector: 'app-place-field',
@@ -38,6 +39,8 @@ export class PlaceFieldComponent {
   readonly selected = input<Place | null>(null);
   readonly suggestions = input<Place[]>([]);
   readonly status = input<PlaceSearchStatus>('idle');
+  /** True while a pinned spot's name is being looked up. */
+  readonly lookingUp = input(false);
 
   /** Every change to the typed text. */
   readonly queryChange = output<string>();

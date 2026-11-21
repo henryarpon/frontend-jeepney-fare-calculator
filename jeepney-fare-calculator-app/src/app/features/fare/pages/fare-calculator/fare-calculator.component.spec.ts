@@ -8,6 +8,7 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import { routes } from '../../../../app.routes';
 
 const photonUrl = 'https://photon.komoot.io/api/';
+const photonReverseUrl = 'https://photon.komoot.io/reverse';
 
 function isPhotonSearch(request: HttpRequest<unknown>): boolean {
   return request.url === photonUrl;
@@ -35,6 +36,11 @@ const sampleBreakdown = {
     { distanceKm: 4, regularFare: 13, discountedFare: 10.4 },
     { distanceKm: 5, regularFare: 13, discountedFare: 10.4 },
     { distanceKm: 6, regularFare: 14.75, discountedFare: 11.8 },
+  ],
+  routeLine: [
+    { lat: 14.62, lng: 121.05 },
+    { lat: 14.61, lng: 121.02 },
+    { lat: 14.6, lng: 120.98 },
   ],
 };
 
@@ -406,6 +412,101 @@ describe('FareCalculatorComponent', () => {
 
     expect(page().querySelector('[role="alert"]')).toBeNull();
     expect(page().querySelector('.breakdown')).not.toBeNull();
+  });
+
+  describe('use my location', () => {
+    /** What the browser's location lookup will answer with. */
+    let answerLocation: (success: PositionCallback, failure: PositionErrorCallback) => void;
+
+    beforeEach(() => {
+      const geolocation: Pick<Geolocation, 'getCurrentPosition'> = {
+        getCurrentPosition: (success, failure) => answerLocation(success, failure!),
+      };
+      Object.defineProperty(navigator, 'geolocation', { value: geolocation, configurable: true });
+    });
+
+    afterEach(() => {
+      Reflect.deleteProperty(navigator, 'geolocation');
+    });
+
+    function locate(): void {
+      page().querySelector<HTMLButtonElement>('button.use-my-location')!.click();
+    }
+
+    function foundAt(lat: number, lng: number): typeof answerLocation {
+      return (success) => success({ coords: { latitude: lat, longitude: lng } } as GeolocationPosition);
+    }
+
+    function failedWith(code: number): typeof answerLocation {
+      return (_success, failure) =>
+        failure({ code, PERMISSION_DENIED: 1, POSITION_UNAVAILABLE: 2, TIMEOUT: 3 } as GeolocationPositionError);
+    }
+
+    function originText(): string {
+      return page().querySelector('app-place-field')?.textContent?.replace(/\s+/g, ' ').trim() ?? '';
+    }
+
+    it("sets the Origin to where the commuter is, named by Photon's reverse lookup", async () => {
+      answerLocation = foundAt(14.6191, 121.051);
+
+      locate();
+      await harness.fixture.whenStable();
+      expect(originText()).toContain('Looking up the place name…');
+
+      const lookup = httpMock.expectOne((request) => request.url === photonReverseUrl);
+      expect(lookup.request.params.get('lat')).toBe('14.6191');
+      expect(lookup.request.params.get('lon')).toBe('121.051');
+      lookup.flush({ features: [cubao] });
+      await harness.fixture.whenStable();
+
+      expect(originText()).toContain('Cubao, Quezon City');
+    });
+
+    it('prices the trip from where the commuter is, not from the place Photon named', async () => {
+      answerLocation = foundAt(14.6191, 121.051);
+      locate();
+      await harness.fixture.whenStable();
+      httpMock.expectOne((request) => request.url === photonReverseUrl).flush({ features: [cubao] });
+      await choosePlace('destination', quiapo);
+
+      calculateButton().click();
+
+      const calculation = httpMock.expectOne('/api/fares/calculate');
+      expect(calculation.request.body.origin).toEqual({ lat: 14.6191, lng: 121.051 });
+      calculation.flush(sampleBreakdown);
+    });
+
+    it('names the spot by its coordinates when Photon has no name for it', async () => {
+      answerLocation = foundAt(14.6191, 121.051);
+      locate();
+      await harness.fixture.whenStable();
+
+      httpMock.expectOne((request) => request.url === photonReverseUrl).error(new ProgressEvent('error'));
+      await harness.fixture.whenStable();
+
+      expect(originText()).toContain('Pinned spot (14.61910, 121.05100)');
+    });
+
+    it('says how to allow it when the commuter has blocked location access', async () => {
+      answerLocation = failedWith(1);
+
+      locate();
+      await harness.fixture.whenStable();
+
+      expect(originText()).toContain(
+        'Location access is blocked. Allow it in your browser settings, or search for your Origin instead.',
+      );
+      expect(searchBox('origin')).not.toBeNull();
+    });
+
+    it('suggests searching when the location cannot be found', async () => {
+      answerLocation = failedWith(3);
+
+      locate();
+      await harness.fixture.whenStable();
+
+      expect(originText()).toContain("Couldn't find your location. Search for your Origin instead.");
+    });
   });
 
   it('says so when the fare could not be calculated', async () => {

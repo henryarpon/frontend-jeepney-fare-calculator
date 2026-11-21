@@ -7,30 +7,54 @@
   <div class="inputs">
     <app-vehicle-type-selector [value]="vehicleType()" (valueChange)="setVehicleType($event)" />
 
-    <div class="trip">
-      <app-place-field
-        class="stop"
-        label="Origin"
-        fieldId="origin"
-        [selected]="origin()"
-        [suggestions]="originSearch.suggestions()"
-        [status]="originSearch.status()"
-        (queryChange)="originSearch.query($event)"
-        (placeSelect)="setOrigin($event)"
-        (placeClear)="setOrigin(null)"
+    <section class="journey" aria-label="Trip">
+      <div class="trip">
+        <app-place-field
+          class="stop"
+          label="Origin"
+          fieldId="origin"
+          [selected]="origin()"
+          [suggestions]="originSearch.suggestions()"
+          [status]="originSearch.status()"
+          [lookingUp]="originLookup.lookingUp()"
+          (queryChange)="originSearch.query($event)"
+          (placeSelect)="setOrigin($event)"
+          (placeClear)="setOrigin(null)"
+        >
+          <button
+            type="button"
+            class="use-my-location"
+            [attr.aria-busy]="locating() ? 'true' : null"
+            (click)="useMyLocation()"
+          >
+            {{ locating() ? 'Finding your location…' : 'Use my location' }}
+          </button>
+          <p class="location-message" aria-live="polite">{{ locationMessage() }}</p>
+        </app-place-field>
+        <app-place-field
+          class="stop"
+          label="Destination"
+          fieldId="destination"
+          [selected]="destination()"
+          [suggestions]="destinationSearch.suggestions()"
+          [status]="destinationSearch.status()"
+          [lookingUp]="destinationLookup.lookingUp()"
+          (queryChange)="destinationSearch.query($event)"
+          (placeSelect)="setDestination($event)"
+          (placeClear)="setDestination(null)"
+        />
+      </div>
+
+      <app-trip-map
+        [origin]="origin()"
+        [destination]="destination()"
+        [routeLine]="routeLine()"
+        [hint]="mapHint()"
+        (mapTap)="tapMap($event)"
+        (originDrag)="pinOrigin($event)"
+        (destinationDrag)="pinDestination($event)"
       />
-      <app-place-field
-        class="stop"
-        label="Destination"
-        fieldId="destination"
-        [selected]="destination()"
-        [suggestions]="destinationSearch.suggestions()"
-        [status]="destinationSearch.status()"
-        (queryChange)="destinationSearch.query($event)"
-        (placeSelect)="setDestination($event)"
-        (placeClear)="setDestination(null)"
-      />
-    </div>
+    </section>
 
     <app-party-steppers [party]="party()" (partyChange)="setParty($event)" />
 

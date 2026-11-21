@@ -19,16 +19,21 @@ import { FareBreakdownComponent } from '../../components/fare-breakdown/fare-bre
 import { FareProblemComponent } from '../../components/fare-problem/fare-problem.component';
 import { PartySteppersComponent } from '../../components/party-steppers/party-steppers.component';
 import { PlaceFieldComponent } from '../../components/place-field/place-field.component';
+import { TripMapComponent } from '../../components/trip-map/trip-map.component';
 import { VehicleTypeSelectorComponent } from '../../components/vehicle-type-selector/vehicle-type-selector.component';
 import {
   CalculateFareRequest,
+  CurrentLocationProblem,
   FareBreakdown,
   FareProblem,
   initialParty,
+  LatLng,
   PartyCounts,
   passengerTypeOptions,
+  pinnedPlace,
   Place,
 } from '../../models/fare.models';
+import { CurrentLocationService } from '../../services/current-location.service';
 import { fareProblem, FareService } from '../../services/fare.service';
 import { PlaceSearchService } from '../../services/place-search.service';
 
@@ -40,8 +45,9 @@ interface FareResult {
 }
 
 /**
- * The commuter screen: pick a Vehicle Type, an Origin and a Destination, and the
- * Party, then Calculate to see what the trip should cost. Nothing is priced until
+ * The commuter screen: pick a Vehicle Type, an Origin and a Destination (by search,
+ * on the map, or "use my location" for the Origin), and the Party, then Calculate
+ * to see what the trip should cost. Nothing is priced until
  * the commuter taps Calculate, so every API call is deliberate.
  */
 @Component({
@@ -50,6 +56,7 @@ interface FareResult {
     FareBreakdownComponent,
     FareProblemComponent,
     PartySteppersComponent, PlaceFieldComponent,
+    TripMapComponent,
     VehicleTypeSelectorComponent,
   ],
   templateUrl: './fare-calculator.component.html',
@@ -59,11 +66,20 @@ interface FareResult {
 export class FareCalculatorComponent {
   private readonly fareService = inject(FareService);
   private readonly placeSearch = inject(PlaceSearchService);
+  private readonly currentLocation = inject(CurrentLocationService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly injector = inject(Injector);
 
   protected readonly originSearch = this.placeSearch.createSearch(this.destroyRef);
   protected readonly destinationSearch = this.placeSearch.createSearch(this.destroyRef);
+
+  /** Names pinned spots. The name only replaces the label: the pin's coordinates stay. */
+  protected readonly originLookup = this.placeSearch.createPinLookup(this.destroyRef, (place) =>
+    this.form.controls.origin.setValue(place),
+  );
+  protected readonly destinationLookup = this.placeSearch.createPinLookup(this.destroyRef, (place) =>
+    this.form.controls.destination.setValue(place),
+  );
 
   /** The trip as the commuter has set it up. The child components report changes into it. */
   protected readonly form = new FormGroup({
@@ -90,6 +106,38 @@ export class FareCalculatorComponent {
 
   /** The request waiting for an answer, so a change of place can cancel it. */
   private pending: Subscription | null = null;
+
+  /** True while "use my location" is finding where the commuter is. */
+  protected readonly locating = signal(false);
+  /** Why "use my location" found no Origin, until the Origin is set another way. */
+  private readonly locationProblem = signal<CurrentLocationProblem | null>(null);
+  /** The location lookup still running, so choosing an Origin another way can cancel it. */
+  private locatingNow: Subscription | null = null;
+
+  protected readonly locationMessage = computed(() => {
+    switch (this.locationProblem()) {
+      case 'denied':
+        return 'Location access is blocked. Allow it in your browser settings, or search for your Origin instead.';
+      case 'unavailable':
+        return "Couldn't find your location. Search for your Origin instead.";
+      default:
+        return null;
+    }
+  });
+
+  /** The route line of the fare shown, drawn on the map. */
+  protected readonly routeLine = computed(() => this.result()?.breakdown.routeLine ?? []);
+
+  /** What tapping the map will do. */
+  protected readonly mapHint = computed(() => {
+    if (this.origin() === null) {
+      return 'Tap the map to place the Origin.';
+    }
+    if (this.destination() === null) {
+      return 'Tap the map to place the Destination.';
+    }
+    return 'Drag a pin to move it.';
+  });
 
   private readonly resultPanel = viewChild<ElementRef<HTMLElement>>('resultPanel');
 
@@ -138,16 +186,71 @@ export class FareCalculatorComponent {
     this.failure.set(null);
   }
 
-  /** A different Origin is a different trip, so any fare shown no longer applies. */
+  /**
+   * A different Origin is a different trip, so any fare shown no longer applies.
+   * A pin's name or a location still being looked up is no longer wanted either.
+   */
   protected setOrigin(place: Place | null): void {
+    this.originLookup.cancel();
+    this.stopLocating();
+    this.locationProblem.set(null);
     this.form.controls.origin.setValue(place);
     this.forgetFare();
   }
 
   /** A different Destination is a different trip, so any fare shown no longer applies. */
   protected setDestination(place: Place | null): void {
+    this.destinationLookup.cancel();
     this.form.controls.destination.setValue(place);
     this.forgetFare();
+  }
+
+  /** Sets the Origin to a spot on the map at once, then looks up its name. */
+  protected pinOrigin(point: LatLng): void {
+    this.setOrigin(pinnedPlace(point));
+    this.originLookup.pin(point);
+  }
+
+  /** Sets the Destination to a spot on the map at once, then looks up its name. */
+  protected pinDestination(point: LatLng): void {
+    this.setDestination(pinnedPlace(point));
+    this.destinationLookup.pin(point);
+  }
+
+  /** A tap on the map places whichever pin is missing, Origin first. Set pins are moved by dragging. */
+  protected tapMap(point: LatLng): void {
+    if (this.origin() === null) {
+      this.pinOrigin(point);
+    } else if (this.destination() === null) {
+      this.pinDestination(point);
+    }
+  }
+
+  protected useMyLocation(): void {
+    if (this.locating()) {
+      return;
+    }
+    this.locationProblem.set(null);
+    this.locating.set(true);
+    this.locatingNow = this.currentLocation
+      .locate()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (point) => {
+          this.locating.set(false);
+          this.pinOrigin(point);
+        },
+        error: (problem: CurrentLocationProblem) => {
+          this.locating.set(false);
+          this.locationProblem.set(problem);
+        },
+      });
+  }
+
+  private stopLocating(): void {
+    this.locatingNow?.unsubscribe();
+    this.locatingNow = null;
+    this.locating.set(false);
   }
 
   protected calculate(): void {
