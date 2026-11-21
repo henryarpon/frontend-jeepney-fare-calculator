@@ -363,6 +363,22 @@ describe('FareCalculatorComponent', () => {
     expect(alertText()).toBe("Couldn't estimate the distance right now, please try again.");
   });
 
+  it('asks to wait a moment after too many requests', async () => {
+    await calculateSampleTrip();
+    page().querySelector<HTMLButtonElement>('button[aria-label="Add one Student"]')!.click();
+    await harness.fixture.whenStable();
+
+    calculateButton().click();
+    httpMock.expectOne('/api/fares/calculate').flush(
+      { status: 429, title: 'Too many requests.', detail: 'Too many requests, please wait a moment.' },
+      { status: 429, statusText: 'Too Many Requests' },
+    );
+    await harness.fixture.whenStable();
+
+    expect(page().querySelector('.breakdown')).toBeNull();
+    expect(alertText()).toBe('Too many requests, please wait a moment, then try again.');
+  });
+
   it('lists what the back end did not accept in the trip', async () => {
     await calculateAndFail(400, {
       status: 400,

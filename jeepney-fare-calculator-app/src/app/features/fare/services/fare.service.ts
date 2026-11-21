@@ -35,6 +35,8 @@ export function fareProblem(error: unknown): FareProblem {
       return { kind: 'invalid-request', errors: validationMessages(body?.errors) };
     case 422:
       return { kind: 'not-priced', detail: typeof body?.detail === 'string' ? body.detail : null };
+    case 429:
+      return { kind: 'too-many-requests' };
     case 503:
       return { kind: 'distance-unavailable' };
     default:

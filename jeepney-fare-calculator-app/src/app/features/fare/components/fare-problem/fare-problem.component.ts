@@ -31,6 +31,8 @@ export class FareProblemComponent {
         return only(problem.detail ?? unexpectedMessage);
       case 'distance-unavailable':
         return only("Couldn't estimate the distance right now, please try again.");
+      case 'too-many-requests':
+        return only('Too many requests, please wait a moment, then try again.');
       case 'invalid-request':
         return { text: "Some trip details weren't accepted. Check them and try again.", details: problem.errors };
       case 'offline':
